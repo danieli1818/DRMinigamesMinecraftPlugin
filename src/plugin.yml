@@ -1,0 +1,9 @@
+name: DRMinigames
+version: ${project.version}
+main: com.danieli1818.drminigames.DRMinigames
+authors: [DanielRottner]
+description: DRMinigames Plugin For DRMinigames.
+
+commands:
+    drminigames:
+        description: shows help page.
