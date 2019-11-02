@@ -38,4 +38,8 @@ public interface Arena {
 	
 	public void removeAllKits();
 	
+	public Map<String, String> getArenaMap();
+	
+	public void loadArenaFromMap(Map<String, String> arenaMap);
+	
 }

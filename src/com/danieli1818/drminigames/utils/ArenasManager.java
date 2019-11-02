@@ -11,6 +11,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.BaseArena;
+import com.danieli1818.drminigames.resources.api.Arena;
 
 public class ArenasManager {
 	
@@ -18,9 +19,11 @@ public class ArenasManager {
 	
 	private Map<String, BaseArena> arenas;
 	
-	private static Plugin plugin = DRMinigames.getPlugin(DRMinigames.class);
+	private static DRMinigames plugin = DRMinigames.getPlugin(DRMinigames.class);
 		
 	private static FileConfiguration config = plugin.getConfig();
+	
+	private static FileConfiguration arenasConfig = plugin.getArenasConfig();
 
 	private ArenasManager() {
 		this.arenas = new HashMap<String, BaseArena>();
@@ -84,23 +87,33 @@ public class ArenasManager {
 	
 	public boolean addArena(String id) {
 		
-		if (this.config.contains(id)) {
+		if (!this.config.contains("arenas")) {
+			this.config.set("arenas", this.arenas);
+		}
+		
+		reloadArenas();
+		
+		if (this.arenas.containsKey(id)) {
 			return false;
 		}
 		
 		this.arenas.put(id, new BaseArena(id));
 		
-		List<String> arenas = this.config.getStringList("arenas");
+//		List<String> arenas = this.config.getStringList("arenas");
+//		
+//		if (arenas.contains(id)) {
+//			return false;
+//		}
+//		
+//		arenas.add(id);
 		
-		if (arenas.contains(id)) {
-			return false;
-		}
+		List<String> arenas = new ArrayList<String>();
 		
-		arenas.add(id);
+		this.arenas.keySet().addAll(arenas);
 		
 		this.config.set("arenas", arenas);
 		
-		this.config.set(id, null);
+//		this.config.set(id, null);
 		
 		this.plugin.saveConfig();
 		
@@ -112,6 +125,13 @@ public class ArenasManager {
 		
 		return this.config.getStringList("arenas");
 		
+	}
+	
+	private Arena loadArenaByID(String id) {
+		if (!this.arenasConfig.contains(id)) {
+			return new BaseArena(id);
+		}
+		return new BaseArena(id); // load arena
 	}
 	
 	

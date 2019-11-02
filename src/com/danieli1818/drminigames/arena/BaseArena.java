@@ -10,6 +10,7 @@ import java.util.Observable;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -327,6 +328,80 @@ public class BaseArena extends Observable implements Arena {
 	public void removeAllKits() {
 		this.kits.clear();
 		
+	}
+
+	@Override
+	public Map<String, String> getArenaMap() {
+		
+//		Map<String, String> arenaMap = new HashMap<String, String>();
+//		
+//		arenaMap.put("spawnLocation", locationMapToString(this.spawnLocation));
+//		
+//		arenaMap.put("waitingLocation", locationToString(this.waitingLocation));
+//		
+//		arenaMap.put("leaveLocation", locationToString(this.leaveLocation));
+//		
+//		private Region limits;
+//		
+//		private int minNumPlayers;
+//		
+//		private int maxNumPlayers;
+//		
+//		private ArenaLogic al;
+//		
+//		private Timer timer;
+//		
+//		private long countdown;
+//		
+//		private List<Kit> kits;
+		return null;
+	}
+
+	@Override
+	public void loadArenaFromMap(Map<String, String> arenaMap) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private String locationMapToString(Map<String, Location> locationsMap) {
+		return locationsMap.entrySet().stream().map(entry -> entry.getKey() + "=" + locationToString(entry.getValue())).collect(Collectors.joining(", "));
+	}
+	
+	private String locationToString(Location location) {
+		if (location == null) {
+			return "";
+		}
+		return location.getWorld().getName() + ":" + location.getX() + ":" + location.getY() + ":" + location.getZ();
+	}
+	
+	private Location getLocationFromString(String locationString) {
+		if (locationString.equalsIgnoreCase("")) {
+			return null;
+		}
+		String[] locationCoords = locationString.split(":");
+		if (locationCoords.length != 4) {
+			return null;
+		}
+		try {
+			return new Location(Bukkit.getServer().getWorld(locationCoords[0]), Double.parseDouble(locationCoords[1]), Double.parseDouble(locationCoords[2]), Double.parseDouble(locationCoords[3]));
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+	
+	private Map<String, Location> locationsMapFromString(String locationsMapString) {
+		String[] entries = locationsMapString.split(", ");
+		Map<String, Location> locationsMap = new HashMap<String, Location>();
+		for (String entryString : entries) {
+			String[] entry = entryString.split("=");
+			if (entry.length != 2) {
+				continue;
+			}
+			locationsMap.put(entry[0], getLocationFromString(entry[1]));
+		}
+		return null;
 	}
 
 }
