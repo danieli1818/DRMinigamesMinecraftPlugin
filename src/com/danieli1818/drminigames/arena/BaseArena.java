@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BlockVector;
 
@@ -25,6 +26,8 @@ import com.danieli1818.drminigames.resources.api.arena.events.JoinEvent;
 //import com.danieli1818.drminigames.api.ArenaLogic;
 //import com.danieli1818.drminigames.api.arena.events.JoinEvent;
 import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 
 public class BaseArena extends Observable implements Arena {
@@ -332,29 +335,28 @@ public class BaseArena extends Observable implements Arena {
 
 	@Override
 	public Map<String, String> getArenaMap() {
+				
+		Map<String, String> arenaMap = new HashMap<String, String>();
 		
-//		Map<String, String> arenaMap = new HashMap<String, String>();
-//		
-//		arenaMap.put("spawnLocation", locationMapToString(this.spawnLocation));
-//		
-//		arenaMap.put("waitingLocation", locationToString(this.waitingLocation));
-//		
-//		arenaMap.put("leaveLocation", locationToString(this.leaveLocation));
-//		
-//		private Region limits;
-//		
-//		private int minNumPlayers;
-//		
-//		private int maxNumPlayers;
-//		
-//		private ArenaLogic al;
-//		
-//		private Timer timer;
-//		
-//		private long countdown;
-//		
-//		private List<Kit> kits;
-		return null;
+		arenaMap.put("spawnLocation", locationMapToString(this.spawnLocation));
+		
+		arenaMap.put("waitingLocation", locationToString(this.waitingLocation));
+		
+		arenaMap.put("leaveLocation", locationToString(this.leaveLocation));
+		
+		arenaMap.put("limits", regionToString(this.limits));
+
+		arenaMap.put("minNumOfPlayers", String.valueOf(this.minNumPlayers));
+		
+		arenaMap.put("maxNumOfPlayers", String.valueOf(this.maxNumPlayers));
+		
+		arenaMap.put("arenaLogicID", this.al.getID());
+				
+		arenaMap.put("cooldown", String.valueOf(this.countdown));
+		
+		arenaMap.put("kits", kitListToString(this.kits));
+		
+		return arenaMap;
 	}
 
 	@Override
@@ -375,7 +377,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private Location getLocationFromString(String locationString) {
-		if (locationString.equalsIgnoreCase("")) {
+		if (locationString.equals("")) {
 			return null;
 		}
 		String[] locationCoords = locationString.split(":");
@@ -401,6 +403,62 @@ public class BaseArena extends Observable implements Arena {
 			}
 			locationsMap.put(entry[0], getLocationFromString(entry[1]));
 		}
+		return null;
+	}
+	
+	private String regionToString(Region region) {
+		return region.getWorld().getName() + ":" + region.getMinimumPoint().toString() + ":" + region.getMaximumPoint().toString();
+	}
+	
+	private Region regionFromString(String regionString) {
+		if (regionString.equals("")) {
+			return null;
+		}
+		String[] regionProperties = regionString.split(":");
+		if (regionProperties.length != 3) {
+			return null;
+		}
+		World world = Bukkit.getServer().getWorld(regionProperties[0]);
+		if (world == null) {
+			return null;
+		}
+		Vector v1 = getVectorFromString(regionProperties[1]);
+		if (v1 == null) {
+			return null;
+		}
+		Vector v2 = getVectorFromString(regionProperties[2]);
+		if (v2 == null) {
+			return null;
+		}
+		com.sk89q.worldedit.world.World worldeditWorld = BukkitUtil.getLocalWorld(world);
+		if (worldeditWorld == null) {
+			return null;
+		}
+		return new CuboidRegion(worldeditWorld, v1, v2);
+	}
+	
+	private Vector getVectorFromString(String vectorString) {
+		if (!(vectorString.startsWith("(") && vectorString.endsWith(")"))) {
+			return null;
+		}
+		vectorString = vectorString.substring(1, vectorString.length() - 1);
+		String[] coords = vectorString.split(", ");
+		if (coords.length != 3) {
+			return null;
+		}
+		try {
+			return new Vector(Double.parseDouble(coords[0]), Double.parseDouble(coords[1]), Double.parseDouble(coords[2]));
+		} catch (NumberFormatException exception) {
+			exception.printStackTrace();
+			return null;
+		}
+	}
+	
+	private String kitListToString(List<Kit> kitList) {
+		return kitList.stream().map(kit -> kit.getID()).collect(Collectors.joining(", "));
+	}
+	
+	private List<Kit> kitListFromString(String kitListString) {
 		return null;
 	}
 

@@ -43,4 +43,9 @@ public class DRColorShooting implements ArenaLogic {
 		ArenaLogic.super.update(o, arg);
 	}
 
+	@Override
+	public String getID() {
+		return "DRColorShooting";
+	}
+
 }
