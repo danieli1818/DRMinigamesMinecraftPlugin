@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.BlockVector;
 
 import com.danieli1818.drminigames.arena.kits.Kit;
+import com.danieli1818.drminigames.arena.kits.KitsManager;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.resources.api.arena.events.JoinEvent;
@@ -352,7 +353,7 @@ public class BaseArena extends Observable implements Arena {
 		
 		arenaMap.put("arenaLogicID", this.al.getID());
 				
-		arenaMap.put("cooldown", String.valueOf(this.countdown));
+		arenaMap.put("countdown", String.valueOf(this.countdown));
 		
 		arenaMap.put("kits", kitListToString(this.kits));
 		
@@ -361,11 +362,47 @@ public class BaseArena extends Observable implements Arena {
 
 	@Override
 	public void loadArenaFromMap(Map<String, String> arenaMap) {
-		// TODO Auto-generated method stub
+		
+		this.spawnLocation = locationsMapFromString(arenaMap.get("spawnLocation"));
+		
+		this.waitingLocation = getLocationFromString(arenaMap.get("waitingLocation"));
+		
+		this.leaveLocation = getLocationFromString(arenaMap.get("leaveLocation"));
+		
+		this.limits = regionFromString(arenaMap.get("limits"));
+		
+		try {
+			this.minNumPlayers = Integer.parseInt(arenaMap.get("minNumOfPlayers"));
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			this.minNumPlayers = 4;
+		}
+		
+		try {
+			this.maxNumPlayers = Integer.parseInt(arenaMap.get("maxNumOfPlayers"));
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			this.maxNumPlayers = 40;
+		}
+		
+		this.al = ArenasLogicsManager.loadArenaLogic(arenaMap.get("arenaLogicID"));
+		
+		try {
+			this.countdown = Integer.parseInt(arenaMap.get("countdown"));
+		} catch(NumberFormatException e) {
+			e.printStackTrace();
+			this.countdown = 10;
+		}
+		
+		this.kits = kitListFromString(arenaMap.get("kits"));
+		
 		
 	}
 	
 	private String locationMapToString(Map<String, Location> locationsMap) {
+		if (locationsMap == null) {
+			return "";
+		}
 		return locationsMap.entrySet().stream().map(entry -> entry.getKey() + "=" + locationToString(entry.getValue())).collect(Collectors.joining(", "));
 	}
 	
@@ -377,7 +414,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private Location getLocationFromString(String locationString) {
-		if (locationString.equals("")) {
+		if (locationString == null || locationString.equals("")) {
 			return null;
 		}
 		String[] locationCoords = locationString.split(":");
@@ -394,6 +431,9 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private Map<String, Location> locationsMapFromString(String locationsMapString) {
+		if (locationsMapString == null) {
+			return new HashMap<String, Location>();
+		}
 		String[] entries = locationsMapString.split(", ");
 		Map<String, Location> locationsMap = new HashMap<String, Location>();
 		for (String entryString : entries) {
@@ -403,15 +443,18 @@ public class BaseArena extends Observable implements Arena {
 			}
 			locationsMap.put(entry[0], getLocationFromString(entry[1]));
 		}
-		return null;
+		return new HashMap<String, Location>();
 	}
 	
 	private String regionToString(Region region) {
+		if (region == null) {
+			return "";
+		}
 		return region.getWorld().getName() + ":" + region.getMinimumPoint().toString() + ":" + region.getMaximumPoint().toString();
 	}
 	
 	private Region regionFromString(String regionString) {
-		if (regionString.equals("")) {
+		if (regionString == null || regionString.equals("")) {
 			return null;
 		}
 		String[] regionProperties = regionString.split(":");
@@ -438,6 +481,9 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private Vector getVectorFromString(String vectorString) {
+		if (vectorString == null) {
+			return null;
+		}
 		if (!(vectorString.startsWith("(") && vectorString.endsWith(")"))) {
 			return null;
 		}
@@ -455,11 +501,22 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private String kitListToString(List<Kit> kitList) {
+		if (kitList == null) {
+			return "";
+		}
 		return kitList.stream().map(kit -> kit.getID()).collect(Collectors.joining(", "));
 	}
 	
 	private List<Kit> kitListFromString(String kitListString) {
-		return null;
+		if (kitListString == null || kitListString.equals("")) {
+			return new ArrayList<Kit>();
+		}
+		String[] kitsIDs = kitListString.split(", ");
+		ArrayList<Kit> kits = new ArrayList<Kit>();
+		for (String kitID : kitsIDs) {
+			kits.add(KitsManager.loadKit(kitID));
+		}
+		return kits;
 	}
 
 }

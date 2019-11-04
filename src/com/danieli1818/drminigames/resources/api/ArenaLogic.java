@@ -1,5 +1,6 @@
 package com.danieli1818.drminigames.resources.api;
 
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -12,6 +13,8 @@ public interface ArenaLogic extends Observer {
 	public boolean canBeAvailable(Arena arena);
 	
 	public String getID();
+	
+	public void loadArenaLogicFromMap(Map<String, String> map);
 	
 	@Override
 	default void update(Observable o, Object arg) {

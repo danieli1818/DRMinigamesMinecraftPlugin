@@ -48,4 +48,10 @@ public class DRColorShooting implements ArenaLogic {
 		return "DRColorShooting";
 	}
 
+	@Override
+	public void loadArenaLogicFromMap(Map<String, String> map) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

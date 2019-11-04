@@ -18,6 +18,9 @@ public final class DRMinigames extends JavaPlugin {
 	
 	private File arenasConfigFile;
 	private FileConfiguration arenasConfig;
+	
+	private File arenasLogicsConfigFile;
+	private FileConfiguration arenasLogicsConfig;
 
 	@Override
 	public void onEnable() {
@@ -28,6 +31,8 @@ public final class DRMinigames extends JavaPlugin {
 		}
 		
 		createArenasConfigs();
+		
+		createArenasLogicsConfigs();
 		
 		getCommand("drminigames").setExecutor(new ArenaCommands());
 		
@@ -54,6 +59,14 @@ public final class DRMinigames extends JavaPlugin {
 		
 	}
 	
+	private void createArenasLogicsConfigs() {
+		
+		AbstractMap.Entry<File, FileConfiguration> arenasLogicsConfigs = createConfigurationFile("arenasLogics.yml");
+		this.arenasLogicsConfigFile = arenasLogicsConfigs.getKey();
+		this.arenasLogicsConfig = arenasLogicsConfigs.getValue();
+		
+	}
+	
 	private AbstractMap.Entry<File, FileConfiguration> createConfigurationFile(String name) {
 		File configFile = new File(getDataFolder(), name);
 		if (!configFile.exists()) {
@@ -73,6 +86,10 @@ public final class DRMinigames extends JavaPlugin {
 	
 	public FileConfiguration getArenasConfig() {
 		return this.arenasConfig;
+	}
+	
+	public FileConfiguration getArenasLogicsConfig() {
+		return this.arenasLogicsConfig;
 	}
 	
 }
