@@ -17,7 +17,7 @@ public class ArenasManager {
 	
 	private static ArenasManager am;
 	
-	private Map<String, BaseArena> arenas;
+	private Map<String, Arena> arenas;
 	
 	private static DRMinigames plugin = DRMinigames.getPlugin(DRMinigames.class);
 		
@@ -26,7 +26,7 @@ public class ArenasManager {
 	private static FileConfiguration arenasConfig = plugin.getArenasConfig();
 
 	private ArenasManager() {
-		this.arenas = new HashMap<String, BaseArena>();
+		this.arenas = new HashMap<String, Arena>();
 	}
 	
 	public static ArenasManager getInstance() {
@@ -55,12 +55,12 @@ public class ArenasManager {
 				System.err.println("Arena " + configArena + " does not exist!");
 				continue;
 			}
-			BaseArena arena = new BaseArena(configArena);
+			Arena arena = loadArenaByID(configArena);
 			this.arenas.put(configArena, arena);
 		}
 	}
 	
-	public BaseArena getArena(String id) {
+	public Arena getArena(String id) {
 		return this.arenas.get(id);
 	}
 	
@@ -76,8 +76,8 @@ public class ArenasManager {
 		
 	}
 	
-	public BaseArena getArena(UUID id) {
-		for (BaseArena arena : this.arenas.values()) {
+	public Arena getArena(UUID id) {
+		for (Arena arena : this.arenas.values()) {
 			if (arena.contains(id)) {
 				return arena;
 			}
@@ -109,7 +109,7 @@ public class ArenasManager {
 		
 		List<String> arenas = new ArrayList<String>();
 		
-		this.arenas.keySet().addAll(arenas);
+		arenas.addAll(this.arenas.keySet());
 		
 		this.config.set("arenas", arenas);
 		
@@ -131,7 +131,9 @@ public class ArenasManager {
 		if (!this.arenasConfig.contains(id)) {
 			return new BaseArena(id);
 		}
-		return new BaseArena(id); // load arena
+		Arena arena = new BaseArena(id);
+		arena.loadArenaFromMap((Map<String, String>) arenasConfig.get(id));
+		return arena;
 	}
 	
 	

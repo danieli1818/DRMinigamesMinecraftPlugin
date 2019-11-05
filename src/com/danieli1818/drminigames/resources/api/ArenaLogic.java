@@ -16,6 +16,8 @@ public interface ArenaLogic extends Observer {
 	
 	public void loadArenaLogicFromMap(Map<String, String> map);
 	
+	public Map<String, String> getArenaLogicMap();
+	
 	@Override
 	default void update(Observable o, Object arg) {
 		// TODO Auto-generated method stub

@@ -1,5 +1,7 @@
 package com.danieli1818.drminigames.arena.arenaslogics;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
@@ -13,8 +15,16 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private List<String> teamColors;
 	
+	public DRColorShooting(String[] args) {
+		this(Arrays.asList(args));
+	}
+	
 	public DRColorShooting(List<String> teamColors) {
 		this.teamColors = teamColors;
+	}
+	
+	public DRColorShooting() {
+		this.teamColors = new ArrayList<String>();
 	}
 
 	@Override
@@ -52,6 +62,12 @@ public class DRColorShooting implements ArenaLogic {
 	public void loadArenaLogicFromMap(Map<String, String> map) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public Map<String, String> getArenaLogicMap() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

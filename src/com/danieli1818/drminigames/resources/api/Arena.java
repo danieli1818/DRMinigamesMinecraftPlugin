@@ -42,4 +42,24 @@ public interface Arena {
 	
 	public void loadArenaFromMap(Map<String, String> arenaMap);
 	
+	public boolean contains(UUID id);
+
+	public boolean isAvailable();
+
+	public boolean addPlayer(UUID uniqueId);
+
+	public void setRegion(Region r);
+
+	public boolean setUnavailable();
+
+	public boolean setAvailable();
+
+	public boolean setSpawnPoint(String name, Location location);
+
+	public boolean setWaitingLocation(Location location);
+
+	public boolean setLeavingLocation(Location location);
+
+	public boolean setType(ArenaLogic arenaLogic);
+	
 }

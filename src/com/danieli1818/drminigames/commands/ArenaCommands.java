@@ -1,5 +1,6 @@
 package com.danieli1818.drminigames.commands;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -10,6 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.danieli1818.drminigames.arena.BaseArena;
+import com.danieli1818.drminigames.arena.arenaslogics.DRColorShooting;
+import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.DRMinigamePlugin;
 import com.danieli1818.drminigames.utils.ArenasManager;
 import com.sk89q.worldedit.IncompleteRegionException;
@@ -107,6 +110,16 @@ public class ArenaCommands implements CommandExecutor {
 				return false;
 			}
 			return setLeavingLocation(p, args[1]);
+		} else if (args[0].equalsIgnoreCase("settype")) {
+			if (args.length < 3) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames settype [ArenaID] [TypeID] {Args}");
+				return false;
+			}
+			List<String> arguments = new ArrayList<String>();
+			for (int i = 3; i < args.length; i++) {
+				arguments.add(args[i]);
+			}
+			return setTypeInner(p, args[1], args[2], (String[])arguments.toArray());
 		}
 		else {
 			sender.sendMessage("Invalid Command!");
@@ -119,7 +132,7 @@ public class ArenaCommands implements CommandExecutor {
 			p.sendMessage("You don't have permission to join this arena!");
 			return false;
 		}
-		BaseArena arena = ArenasManager.getInstance().getArena(id);
+		Arena arena = ArenasManager.getInstance().getArena(id);
 		if (arena == null) {
 			p.sendMessage("Arena " + id + " does not exist!");
 			return false;
@@ -154,7 +167,7 @@ public class ArenaCommands implements CommandExecutor {
 	}
 	
 	private boolean leaveArena(Player p) {
-		BaseArena arena = ArenasManager.getInstance().getArena(p.getUniqueId());
+		Arena arena = ArenasManager.getInstance().getArena(p.getUniqueId());
 		if (arena == null) {
 			p.sendMessage("You aren't in a minigame!");
 			return false;
@@ -231,7 +244,7 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		
-		BaseArena arena = ArenasManager.getInstance().getArena(arenaID);
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		
 		if (!availability) {
 			arena.setUnavailable();
@@ -268,7 +281,7 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		
-		BaseArena arena = ArenasManager.getInstance().getArena(arenaID);
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		
 		if (!arena.setSpawnPoint(name, p.getLocation())) {
 			p.sendMessage("Please set region first and make sure the spawn location is inside it.");
@@ -293,7 +306,7 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		
-		BaseArena arena = ArenasManager.getInstance().getArena(arenaID);
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		
 		if (!arena.setWaitingLocation(p.getLocation())) {
 			p.sendMessage("Error in setting waiting location.");
@@ -321,7 +334,7 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		
-		BaseArena arena = ArenasManager.getInstance().getArena(arenaID);
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		
 		if (!arena.setLeavingLocation(p.getLocation())) {
 			p.sendMessage("Error in setting leaving location.");
@@ -349,7 +362,7 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		
-		BaseArena arena = ArenasManager.getInstance().getArena(arenaID);
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		
 		Plugin plugin = Bukkit.getPluginManager().getPlugin(typeName);
 		
@@ -373,7 +386,7 @@ public class ArenaCommands implements CommandExecutor {
 		
 	}
 	
-	private boolean setTypeInner(Player p, String arenaID, String typeName) {
+	private boolean setTypeInner(Player p, String arenaID, String typeName, String[] args) {
 		
 		if (!p.hasPermission("drminigames.settype." + arenaID)) {
 			p.sendMessage("You don't have permission for this command! (drminigames.settype." + arenaID + ")");
@@ -385,9 +398,18 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		
-		BaseArena arena = ArenasManager.getInstance().getArena(arenaID);
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		
-		
+		if (typeName == null) {
+			p.sendMessage("Type doesn't exist!");
+			return false;
+		}
+		if (typeName.equalsIgnoreCase("DRColorShooting")) {
+			arena.setType(new DRColorShooting(args));
+		} else {
+			p.sendMessage("Type doesn't exist!");
+			return false;
+		}
 		
 //		arena.setType(drplugin.getArenaLogic());
 		
