@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.danieli1818.drminigames.commands.ArenaCommands;
+import com.danieli1818.drminigames.utils.ArenasManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public final class DRMinigames extends JavaPlugin {
@@ -34,6 +35,8 @@ public final class DRMinigames extends JavaPlugin {
 		
 		createArenasLogicsConfigs();
 		
+		ArenasManager.getInstance().reloadArenas();
+		
 		getCommand("drminigames").setExecutor(new ArenaCommands());
 		
 		System.out.println("plugin has successfully loaded!!!!");
@@ -42,6 +45,8 @@ public final class DRMinigames extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
+		
+		ArenasManager.getInstance().saveArenas();
 		
 		System.out.println("plugin has been disabled.");
 		
@@ -88,8 +93,16 @@ public final class DRMinigames extends JavaPlugin {
 		return this.arenasConfig;
 	}
 	
+	public File getArenasConfigFile() {
+		return this.arenasConfigFile;
+	}
+	
 	public FileConfiguration getArenasLogicsConfig() {
 		return this.arenasLogicsConfig;
+	}
+	
+	public File getArenasLogicsConfigFile() {
+		return this.arenasLogicsConfigFile;
 	}
 	
 }

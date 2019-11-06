@@ -1,9 +1,11 @@
 package com.danieli1818.drminigames.commands;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -44,6 +46,12 @@ public class ArenaCommands implements CommandExecutor {
 		}
 		
 		Player p = (Player)sender;
+		
+		if (args.length == 0) {
+			p.sendMessage(ChatColor.GOLD.toString() + ChatColor.BOLD.toString() + "++++++++++++++++DRMinigames Plugin++++++++++++++++");
+			p.sendMessage("For help type: /DRMinigames help.");
+			return true;
+		}
 		
 //		System.out.println(args.length);
 //		for (String string : args) {
@@ -115,11 +123,11 @@ public class ArenaCommands implements CommandExecutor {
 				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames settype [ArenaID] [TypeID] {Args}");
 				return false;
 			}
-			List<String> arguments = new ArrayList<String>();
+			String[] arguments = new String[args.length - 3];
 			for (int i = 3; i < args.length; i++) {
-				arguments.add(args[i]);
+				arguments[i - 3] = args[i];
 			}
-			return setTypeInner(p, args[1], args[2], (String[])arguments.toArray());
+			return setTypeInner(p, args[1], args[2], arguments);
 		}
 		else {
 			sender.sendMessage("Invalid Command!");
@@ -220,7 +228,12 @@ public class ArenaCommands implements CommandExecutor {
 //			BlockVector3 max = r.getMaximumPoint();
 //			Location l1 = new Location(world, min.getBlockX(), min.getBlockY(), min.getBlockZ());
 //			Location l2 = new Location(world, max.getBlockX(), max.getBlockY(), max.getBlockZ());
-			ArenasManager.getInstance().getArena(arenaID).setRegion(r);
+			Arena arena = ArenasManager.getInstance().getArena(arenaID);
+			if (arena == null) {
+				p.sendMessage("Arena " + arenaID + " doesn't exist!");
+				return false;
+			}
+			arena.setRegion(r);
 		} catch (IncompleteRegionException e) {
 			p.sendMessage("Please choose a region for the arena!");
 			return false;

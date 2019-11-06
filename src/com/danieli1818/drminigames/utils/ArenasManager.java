@@ -1,5 +1,8 @@
 package com.danieli1818.drminigames.utils;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +27,8 @@ public class ArenasManager {
 	private static FileConfiguration config = plugin.getConfig();
 	
 	private static FileConfiguration arenasConfig = plugin.getArenasConfig();
+	
+	private static File arenasConfigFile = plugin.getArenasConfigFile();
 
 	private ArenasManager() {
 		this.arenas = new HashMap<String, Arena>();
@@ -134,6 +139,17 @@ public class ArenasManager {
 		Arena arena = new BaseArena(id);
 		arena.loadArenaFromMap((Map<String, String>) arenasConfig.get(id));
 		return arena;
+	}
+	
+	public void saveArenas() {
+		for (AbstractMap.Entry<String, Arena> entry : this.arenas.entrySet()) {
+			arenasConfig.set(entry.getKey(), entry.getValue().getArenaMap());
+		}
+		try {
+			arenasConfig.save(arenasConfigFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	

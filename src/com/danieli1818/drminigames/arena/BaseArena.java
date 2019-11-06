@@ -351,7 +351,9 @@ public class BaseArena extends Observable implements Arena {
 		
 		arenaMap.put("maxNumOfPlayers", String.valueOf(this.maxNumPlayers));
 		
-		arenaMap.put("arenaLogicID", this.al.getID());
+		if (this.al != null) {
+			arenaMap.put("arenaLogicID", this.al.getID());
+		}
 				
 		arenaMap.put("countdown", String.valueOf(this.countdown));
 		
