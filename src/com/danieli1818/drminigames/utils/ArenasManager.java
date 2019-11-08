@@ -143,7 +143,11 @@ public class ArenasManager {
 	
 	public void saveArenas() {
 		for (AbstractMap.Entry<String, Arena> entry : this.arenas.entrySet()) {
-			arenasConfig.set(entry.getKey(), entry.getValue().getArenaMap());
+			try {
+				SavingAndLoadingUtils.saveMap(entry.getValue().getArenaMap(), arenasConfig, null, entry.getKey());
+			} catch (IOException exception) {
+				exception.printStackTrace();
+			}
 		}
 		try {
 			arenasConfig.save(arenasConfigFile);
