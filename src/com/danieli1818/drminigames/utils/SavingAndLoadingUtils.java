@@ -16,7 +16,7 @@ public class SavingAndLoadingUtils {
 		for (AbstractMap.Entry<String, String> entry : map.entrySet()) {
 			conf.set(path + "." + entry.getKey(), entry.getValue());
 		}
-		if (file == null) {
+		if (file != null) {
 			conf.save(file);
 		}
 	}
@@ -35,7 +35,7 @@ public class SavingAndLoadingUtils {
 	
 	public static void saveMap(Map<String, String> map, FileConfiguration conf, File file, String path) throws IOException {
 		conf.createSection(path, map);
-		if (file == null) {
+		if (file != null) {
 			conf.save(file);
 		}
 	}

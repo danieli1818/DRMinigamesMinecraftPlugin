@@ -1,5 +1,6 @@
 package com.danieli1818.drminigames.commands;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -128,6 +129,12 @@ public class ArenaCommands implements CommandExecutor {
 				arguments[i - 3] = args[i];
 			}
 			return setTypeInner(p, args[1], args[2], arguments);
+		} else if (args[0].equalsIgnoreCase("saveall")) {
+			if (args.length > 1) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames saveall");
+				return false;
+			}
+			return saveAll(p);
 		}
 		else {
 			sender.sendMessage("Invalid Command!");
@@ -428,6 +435,26 @@ public class ArenaCommands implements CommandExecutor {
 		
 		p.sendMessage("Arena " + arenaID + "'s type has been set successfully!");
 		
+		return true;
+		
+	}
+	
+	private boolean saveAll(Player p) {
+		
+		if (!p.hasPermission("drminigames.saveall")) {
+			p.sendMessage("You don't have permission for this command! (drminigames.saveall)");
+			return false;
+		}
+		
+		try {
+			ArenasManager.getInstance().saveArenas();
+		} catch (IOException e) {
+			p.sendMessage("Error saving arenas! Details In Error Log!");
+			e.printStackTrace();
+			return false;
+		}
+		
+		p.sendMessage("Arenas Have Been Successfully Saved!");
 		return true;
 		
 	}

@@ -141,7 +141,7 @@ public class ArenasManager {
 		return arena;
 	}
 	
-	public void saveArenas() {
+	public void saveArenas() throws IOException {
 		for (AbstractMap.Entry<String, Arena> entry : this.arenas.entrySet()) {
 			try {
 				SavingAndLoadingUtils.saveMap(entry.getValue().getArenaMap(), arenasConfig, null, entry.getKey());
@@ -149,11 +149,7 @@ public class ArenasManager {
 				exception.printStackTrace();
 			}
 		}
-		try {
-			arenasConfig.save(arenasConfigFile);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		arenasConfig.save(arenasConfigFile);
 	}
 	
 	

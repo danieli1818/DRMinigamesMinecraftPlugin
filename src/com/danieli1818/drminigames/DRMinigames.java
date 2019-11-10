@@ -46,7 +46,11 @@ public final class DRMinigames extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		
-		ArenasManager.getInstance().saveArenas();
+		try {
+			ArenasManager.getInstance().saveArenas();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		System.out.println("plugin has been disabled.");
 		
