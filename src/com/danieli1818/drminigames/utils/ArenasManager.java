@@ -13,6 +13,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import com.danieli1818.drminigames.DRMinigames;
+import com.danieli1818.drminigames.arena.ArenasLogicsManager;
 import com.danieli1818.drminigames.arena.BaseArena;
 import com.danieli1818.drminigames.resources.api.Arena;
 
@@ -138,6 +139,7 @@ public class ArenasManager {
 		}
 		Arena arena = new BaseArena(id);
 		arena.loadArenaFromMap((Map<String, String>) arenasConfig.get(id));
+		arena.setType(ArenasLogicsManager.loadArenaLogic(id));
 		return arena;
 	}
 	
@@ -145,8 +147,22 @@ public class ArenasManager {
 		for (AbstractMap.Entry<String, Arena> entry : this.arenas.entrySet()) {
 			try {
 				SavingAndLoadingUtils.saveMap(entry.getValue().getArenaMap(), arenasConfig, null, entry.getKey());
+				ArenasLogicsManager.saveArenaLogic(entry.getValue().getAL(), entry.getKey());
 			} catch (IOException exception) {
 				exception.printStackTrace();
+			}
+		}
+		arenasConfig.save(arenasConfigFile);
+	}
+	
+	public void saveArenas(String[] ids) throws IOException {
+		for (String id : ids) {
+			if (this.doesExist(id)) {
+				try {
+					SavingAndLoadingUtils.saveMap(this.getArena(id).getArenaMap(), arenasConfig, null, id);
+				} catch (IOException exception) {
+					exception.printStackTrace();
+				}
 			}
 		}
 		arenasConfig.save(arenasConfigFile);

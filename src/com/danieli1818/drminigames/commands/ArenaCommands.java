@@ -135,6 +135,16 @@ public class ArenaCommands implements CommandExecutor {
 				return false;
 			}
 			return saveAll(p);
+		} else if (args[0].equalsIgnoreCase("save")) {
+			if (args.length <= 1) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames save Arena1ID Arena2ID Arena3ID Arena4ID ...");
+				return false;
+			}
+			String[] arguments = new String[args.length - 1];
+			for (int i = 1; i < args.length; i++) {
+				arguments[i - 1] = args[i];
+			}
+			return saveArenas(p, arguments);
 		}
 		else {
 			sender.sendMessage("Invalid Command!");
@@ -457,6 +467,25 @@ public class ArenaCommands implements CommandExecutor {
 		p.sendMessage("Arenas Have Been Successfully Saved!");
 		return true;
 		
+	}
+	
+	private boolean saveArenas(Player p, String[] ids) {
+		
+		if (!p.hasPermission("drminigames.savearenabyid")) {
+			p.sendMessage("You don't have permission for this command! (drminigames.savearenabyid)");
+			return false;
+		}
+		
+		try {
+			ArenasManager.getInstance().saveArenas(ids);
+		} catch (IOException e) {
+			p.sendMessage("Error saving arenas! Details In Error Log!");
+			e.printStackTrace();
+			return false;
+		}
+		
+		p.sendMessage("Arenas Have Beean Successfully Saved!");
+		return true;
 	}
 
 }

@@ -99,6 +99,7 @@ public class BaseArena extends Observable implements Arena {
 				
 				@Override
 				public void run() {
+					state = GameState.RUNNING;
 					al.start(thisArena);
 					
 				}

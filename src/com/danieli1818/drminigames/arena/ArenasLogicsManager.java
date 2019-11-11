@@ -1,5 +1,7 @@
 package com.danieli1818.drminigames.arena;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import org.bukkit.configuration.file.FileConfiguration;
@@ -8,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.DRColorShooting;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
+import com.danieli1818.drminigames.utils.SavingAndLoadingUtils;
 
 public class ArenasLogicsManager {
 	
@@ -16,6 +19,8 @@ public class ArenasLogicsManager {
 	private static DRMinigames plugin = DRMinigames.getPlugin(DRMinigames.class);
 	
 	private static FileConfiguration arenasLogicsConfig = plugin.getArenasLogicsConfig();
+	
+	private static File arenasLogicsConfigFile = plugin.getArenasLogicsConfigFile();
 	
 	private ArenasLogicsManager() {
 		
@@ -45,10 +50,11 @@ public class ArenasLogicsManager {
 		return null;
 	}
 	
-	public static void saveArenaLogic(ArenaLogic al, String id) {
+	public static void saveArenaLogic(ArenaLogic al, String id) throws IOException {
 		Map<String, String> arenaLogicMap = al.getArenaLogicMap();
 		arenaLogicMap.put("id", al.getID());
-		arenasLogicsConfig.set(id, arenaLogicMap);
+		SavingAndLoadingUtils.saveMap(arenaLogicMap, arenasLogicsConfig, arenasLogicsConfigFile, id);
+//		arenasLogicsConfig.set(id, arenaLogicMap);
 	}
 	
 }
