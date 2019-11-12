@@ -2,18 +2,40 @@ package com.danieli1818.drminigames.arena.arenaslogics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
+import com.danieli1818.drminigames.utils.RegionUtils;
 
 public class DRColorShooting implements ArenaLogic {
 	
 	private List<String> teamColors;
+	private HashMap<UUID, String> playersColors;
+	private HashMap<String, TeamColorBlock> teamColorsBlocks;
+	private int numOfBlocksPerTeam;
+	
+	private class TeamColorBlock {
+		
+		private Block block;
+		private int points;
+		
+		public TeamColorBlock(Block block, int points) {
+			this.block = block;
+			this.points = points;
+		}
+		
+	}
 	
 	public DRColorShooting(String[] args) {
 		this(Arrays.asList(args));
@@ -29,7 +51,22 @@ public class DRColorShooting implements ArenaLogic {
 
 	@Override
 	public void start(Arena arena) {
-		// TODO Auto-generated method stub
+		List<UUID> uuids = arena.getPlayers();
+		Collections.shuffle(uuids);
+		Iterator<String> currentTeamColor = teamColors.iterator();
+		for (UUID uuid : uuids) {
+			if (!currentTeamColor.hasNext()) {
+				currentTeamColor = teamColors.iterator();
+			}
+			this.playersColors.put(uuid, currentTeamColor.next());
+		}
+		List<Location> locations = RegionUtils.getRandomNBlocksInRegion(arena.getLimits(), this.numOfBlocksPerTeam * this.teamColors.size(), (Location location) -> {
+			Block block = location.getBlock();
+			return block == null || block.getType() == Material.AIR;
+		});
+		for (Location location : locations) {
+			
+		}
 		
 	}
 
