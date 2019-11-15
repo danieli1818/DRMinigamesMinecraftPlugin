@@ -9,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.DRColorShooting;
+import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.SavingAndLoadingUtils;
 
@@ -33,7 +34,7 @@ public class ArenasLogicsManager {
 		return instance;
 	}
 
-	public static ArenaLogic loadArenaLogic(String id) {
+	public static ArenaLogic loadArenaLogic(Arena arena, String id) {
 		Map<String, String> arenaLogicMap = (Map<String, String>) arenasLogicsConfig.get(id);
 		if (arenaLogicMap == null || arenaLogicMap.isEmpty() || !arenaLogicMap.containsKey("id")) {
 			return null;
@@ -43,7 +44,7 @@ public class ArenasLogicsManager {
 			return null;
 		}
 		if (gameID.equals("DRColorShooting")) {
-			ArenaLogic al = new DRColorShooting();
+			ArenaLogic al = new DRColorShooting(arena);
 			al.loadArenaLogicFromMap(arenaLogicMap);
 			return al;
 		}

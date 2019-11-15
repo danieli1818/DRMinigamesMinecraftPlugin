@@ -139,7 +139,7 @@ public class ArenasManager {
 		}
 		Arena arena = new BaseArena(id);
 		arena.loadArenaFromMap((Map<String, String>) arenasConfig.get(id));
-		arena.setType(ArenasLogicsManager.loadArenaLogic(id));
+		arena.setType(ArenasLogicsManager.loadArenaLogic(arena, id));
 		return arena;
 	}
 	

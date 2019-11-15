@@ -10,63 +10,57 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.RegionUtils;
+import com.google.common.collect.BiMap;
 
 public class DRColorShooting implements ArenaLogic {
 	
+	private Arena arena;
 	private List<String> teamColors;
-	private HashMap<UUID, String> playersColors;
-	private HashMap<String, TeamColorBlock> teamColorsBlocks;
+	private BiMap<UUID, String> playersColors;
+	private BiMap<String, List<Material>> teamColorsBlocks;
+	private Map<Material, Integer> blocksPoints;
 	private int numOfBlocksPerTeam;
 	
-	private class TeamColorBlock {
-		
-		private Block block;
-		private int points;
-		
-		public TeamColorBlock(Block block, int points) {
-			this.block = block;
-			this.points = points;
-		}
-		
+//	private class TeamColorBlock {
+//		
+//		private Block block;
+//		private int points;
+//		
+//		public TeamColorBlock(Block block, int points) {
+//			this.block = block;
+//			this.points = points;
+//		}
+//		
+//	}
+	
+	public DRColorShooting(Arena arena, String[] args) {
+		this(arena, Arrays.asList(args));
 	}
 	
-	public DRColorShooting(String[] args) {
-		this(Arrays.asList(args));
-	}
-	
-	public DRColorShooting(List<String> teamColors) {
+	public DRColorShooting(Arena arena, List<String> teamColors) {
+		this.arena = arena;
 		this.teamColors = teamColors;
 	}
 	
-	public DRColorShooting() {
+	public DRColorShooting(Arena arena) {
+		this.arena = arena;
 		this.teamColors = new ArrayList<String>();
 	}
 
 	@Override
 	public void start(Arena arena) {
-		List<UUID> uuids = arena.getPlayers();
-		Collections.shuffle(uuids);
-		Iterator<String> currentTeamColor = teamColors.iterator();
-		for (UUID uuid : uuids) {
-			if (!currentTeamColor.hasNext()) {
-				currentTeamColor = teamColors.iterator();
-			}
-			this.playersColors.put(uuid, currentTeamColor.next());
-		}
-		List<Location> locations = RegionUtils.getRandomNBlocksInRegion(arena.getLimits(), this.numOfBlocksPerTeam * this.teamColors.size(), (Location location) -> {
-			Block block = location.getBlock();
-			return block == null || block.getType() == Material.AIR;
-		});
-		for (Location location : locations) {
-			
-		}
+		setTeamsToPlayers();
+		teleportPlayersToArena();
 		
 	}
 
@@ -104,6 +98,49 @@ public class DRColorShooting implements ArenaLogic {
 	@Override
 	public Map<String, String> getArenaLogicMap() {
 		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	private void setTeamsToPlayers() {
+		List<UUID> uuids = this.arena.getPlayers();
+		Collections.shuffle(uuids);
+		Iterator<String> currentTeamColor = teamColors.iterator();
+		for (UUID uuid : uuids) {
+			if (!currentTeamColor.hasNext()) {
+				currentTeamColor = teamColors.iterator();
+			}
+			this.playersColors.put(uuid, currentTeamColor.next());
+		}
+	}
+	
+	private void teleportPlayersToArena() {
+		List<UUID> uuids = this.arena.getPlayers();
+		Server server = Bukkit.getServer();
+		Map<String, Location> spawns = this.arena.getSpawnLocation();
+		for (UUID uuid : uuids) {
+			String teamColor = this.playersColors.get(uuid);
+			Player player = server.getPlayer(uuid);
+			if (player != null) {
+				player.teleport(spawns.get(teamColor));
+			}
+		}
+	}
+	
+	private void spawnRandomTeamBlocks() {
+		List<Location> locations = RegionUtils.getRandomNBlocksInRegion(this.arena.getLimits(), this.numOfBlocksPerTeam * this.teamColors.size(), (Location location) -> {
+			Block block = location.getBlock();
+			return block == null || block.getType() == Material.AIR;
+		});
+		Iterator currentTeamColor = this.teamColors.iterator();
+		for (Location location : locations) {
+			if (!currentTeamColor.hasNext()) {
+				currentTeamColor = this.teamColors.iterator();
+			}
+			location.getBlock().setType(this.teamColorsBlocks.get(currentTeamColor.next()).get(0));
+		}
+	}
+	
+	private Material getRandomMaterialOfTeam(String team) {
 		return null;
 	}
 

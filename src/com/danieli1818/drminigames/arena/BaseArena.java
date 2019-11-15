@@ -16,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.util.BlockVector;
 
 import com.danieli1818.drminigames.arena.kits.Kit;
@@ -90,7 +91,7 @@ public class BaseArena extends Observable implements Arena {
 		}
 		Player p = Bukkit.getPlayer(id);
 		this.players.add(p.getUniqueId());
-		this.al.update(this, new JoinEvent(p));
+		notifyObservers(new JoinEvent(p));
 		p.teleport(this.waitingLocation);
 		if (this.state != GameState.COOLDOWN && this.players.size() >= this.minNumPlayers) {
 			this.state = GameState.COOLDOWN;
@@ -388,7 +389,7 @@ public class BaseArena extends Observable implements Arena {
 			this.maxNumPlayers = 40;
 		}
 		
-		this.al = ArenasLogicsManager.loadArenaLogic(arenaMap.get("arenaLogicID"));
+		this.al = ArenasLogicsManager.loadArenaLogic(this, arenaMap.get("arenaLogicID"));
 		
 		try {
 			this.countdown = Integer.parseInt(arenaMap.get("countdown"));
@@ -520,6 +521,12 @@ public class BaseArena extends Observable implements Arena {
 			kits.add(KitsManager.loadKit(kitID));
 		}
 		return kits;
+	}
+
+	@Override
+	public boolean sendEvent(Event event) {
+		notifyObservers(event);
+		return true;
 	}
 
 }

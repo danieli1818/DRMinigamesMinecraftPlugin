@@ -6,6 +6,7 @@ import java.util.Timer;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.event.Event;
 
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.sk89q.worldedit.regions.Region;
@@ -61,5 +62,7 @@ public interface Arena {
 	public boolean setLeavingLocation(Location location);
 
 	public boolean setType(ArenaLogic arenaLogic);
+	
+	public boolean sendEvent(Event event);
 	
 }
