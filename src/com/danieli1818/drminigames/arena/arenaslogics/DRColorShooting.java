@@ -21,6 +21,8 @@ import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.RegionUtils;
 import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.sk89q.worldedit.regions.Region;
 
 public class DRColorShooting implements ArenaLogic {
 	
@@ -50,11 +52,17 @@ public class DRColorShooting implements ArenaLogic {
 	public DRColorShooting(Arena arena, List<String> teamColors) {
 		this.arena = arena;
 		this.teamColors = teamColors;
+		this.playersColors = HashBiMap.create();
+		this.teamColorsBlocks = HashBiMap.create();
+		this.blocksPoints = new HashMap<Material, Integer>();
 	}
 	
 	public DRColorShooting(Arena arena) {
 		this.arena = arena;
 		this.teamColors = new ArrayList<String>();
+		this.playersColors = HashBiMap.create();
+		this.teamColorsBlocks = HashBiMap.create();
+		this.blocksPoints = new HashMap<Material, Integer>();
 	}
 
 	@Override
@@ -67,8 +75,9 @@ public class DRColorShooting implements ArenaLogic {
 	@Override
 	public boolean canBeAvailable(Arena arena) {
 		Map<String, Location> spawns = arena.getSpawnLocation();
+		Map<String, Region> regions = arena.getRegions();
 		for (String color : teamColors) {
-			if (!spawns.containsKey(color) || spawns.get(color) == null) {
+			if (spawns.get(color) == null || regions.get(color) == null) {
 				return false;
 			}
 		}
@@ -127,21 +136,36 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void spawnRandomTeamBlocks() {
-		List<Location> locations = RegionUtils.getRandomNBlocksInRegion(this.arena.getLimits(), this.numOfBlocksPerTeam * this.teamColors.size(), (Location location) -> {
-			Block block = location.getBlock();
-			return block == null || block.getType() == Material.AIR;
-		});
-		Iterator currentTeamColor = this.teamColors.iterator();
-		for (Location location : locations) {
-			if (!currentTeamColor.hasNext()) {
-				currentTeamColor = this.teamColors.iterator();
+		Map<String, Region> regions = this.arena.getRegions();
+		Map<String, List<Location>> locationsPerRegion = new HashMap<String, List<Location>>();
+		for (String color : teamColors) {
+			
+			List<Location> locations = RegionUtils.getRandomNBlocksInRegion(regions.get(color), this.numOfBlocksPerTeam, (Location location) -> {
+				Block block = location.getBlock();
+				return block == null || block.getType() == Material.AIR;
+			});
+			
+			if (locations != null) {
+				locationsPerRegion.put(color, locations);
 			}
-			location.getBlock().setType(this.teamColorsBlocks.get(currentTeamColor.next()).get(0));
+			
 		}
+
+		
+		Iterator currentTeamColor = this.teamColors.iterator();
+		for (List<Location> locations : locationsPerRegion.values()) {
+			for (Location location : locations) {
+				if (!currentTeamColor.hasNext()) {
+					currentTeamColor = this.teamColors.iterator();
+				}
+				location.getBlock().setType(getRandomMaterialOfTeam((String)currentTeamColor.next()));
+			}
+		}
+
 	}
 	
 	private Material getRandomMaterialOfTeam(String team) {
-		return null;
+		return this.teamColorsBlocks.get(team).get(0);
 	}
 
 }

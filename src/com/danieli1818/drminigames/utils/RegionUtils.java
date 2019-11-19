@@ -13,12 +13,10 @@ import org.bukkit.World;
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldedit.regions.Region;
 
-import net.minecraft.server.v1_12_R1.Blocks;
-
 public class RegionUtils {
 
  	public static List<Location> getRandomNBlocksInRegion(Region region, int num, Predicate<Location> predicate) {
- 		if (num < 0) {
+ 		if (num < 0 || region == null) {
  			return null;
  		}
  		if (num == 0) {

@@ -50,6 +50,8 @@ public interface Arena {
 	public boolean addPlayer(UUID uniqueId);
 
 	public void setRegion(Region r);
+	
+	public boolean setRegion(Region r, String id);
 
 	public boolean setUnavailable();
 
@@ -64,5 +66,11 @@ public interface Arena {
 	public boolean setType(ArenaLogic arenaLogic);
 	
 	public boolean sendEvent(Event event);
+	
+	public Map<String, Region> getRegions();
+	
+	public boolean setMinNumOfPlayers(int num);
+	
+	public boolean setMaxNumOfPlayers(int num);
 	
 }

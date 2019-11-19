@@ -56,6 +56,8 @@ public class BaseArena extends Observable implements Arena {
 	
 	private List<Kit> kits;
 	
+	private Map<String, Region> regions;
+	
 	private enum GameState {
 		UNAVAILABLE,
 		WAITING,
@@ -73,8 +75,9 @@ public class BaseArena extends Observable implements Arena {
 		this.limits = null;
 		this.spawnLocation = new HashMap<String, Location>();
 		this.timer = new Timer();
-		this.countdown = 10;
+		this.countdown = 10000;
 		this.kits = Collections.synchronizedList(new ArrayList<Kit>());
+		this.regions = new HashMap<String, Region>();
 		reset();
 	}
 	
@@ -150,6 +153,9 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean setUnavailable() {
+		if (this.timer != null) {
+			this.timer.cancel();
+		}
 		if (this.state == GameState.RUNNING) {
 			finishGame();
 		} else {
@@ -187,7 +193,7 @@ public class BaseArena extends Observable implements Arena {
 		if (this.limits == null) {
 			return false;
 		}
-		if (this.minNumPlayers == -1 || this.maxNumPlayers == -1) {
+		if (this.minNumPlayers == -1 || this.maxNumPlayers == -1 || this.minNumPlayers > this.maxNumPlayers) {
 			return false;
 		}
 		if (this.al == null) {
@@ -223,6 +229,18 @@ public class BaseArena extends Observable implements Arena {
 	public void setRegion(Region r) {
 		this.limits = r;
 		this.spawnLocation.clear();
+	}
+	
+	@Override
+	public boolean setRegion(Region r, String id) {
+		if (id == null) {
+			boolean returnValue = this.limits != null;
+			setRegion(r);
+			return returnValue;
+		}
+		boolean returnValue = this.regions.containsKey(id);
+		this.regions.put(id, r);
+		return returnValue;
 	}
 	
 	public boolean setSpawnPoint(String name, Location location) {
@@ -526,6 +544,26 @@ public class BaseArena extends Observable implements Arena {
 	@Override
 	public boolean sendEvent(Event event) {
 		notifyObservers(event);
+		return true;
+	}
+	
+	public Map<String, Region> getRegions() {
+		return this.regions;
+	}
+	
+	public boolean setMinNumOfPlayers(int num) {
+		if (num <= 0) {
+			return false;
+		}
+		this.minNumPlayers = num;
+		return true;
+	}
+	
+	public boolean setMaxNumOfPlayers(int num) {
+		if (num <= 0) {
+			return false;
+		}
+		this.maxNumPlayers = num;
 		return true;
 	}
 

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -90,17 +92,21 @@ public class ArenaCommands implements CommandExecutor {
 			}
 			return reload(p);
 		} else if (args[0].equalsIgnoreCase("setregion")) {
-			if (args.length != 2) {
-				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames setregion [ArenaID]");
+			if (args.length < 2 || args.length > 3) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames setregion [ArenaID] {RegionID}");
 				return false;
 			}
-			return setRegion(p, args[1]);
+			String regionID = null;
+			if (args.length == 3) {
+				regionID = args[2];
+			}
+			return setRegion(p, args[1], regionID);
 		} else if (args[0].equalsIgnoreCase("setavailability")) {
 			if (args.length != 3) {
 				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames setavailability [ArenaID] [Availability]");
 				return false;
 			}
-			return setAvailability(p, args[1], Boolean.getBoolean(args[2]));
+			return setAvailability(p, args[1], Boolean.valueOf(args[2]));
 		} else if (args[0].equalsIgnoreCase("setspawn")) {
 			if (args.length != 3) {
 				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames setspawn [ArenaID] [SpawnName]");
@@ -145,6 +151,18 @@ public class ArenaCommands implements CommandExecutor {
 				arguments[i - 1] = args[i];
 			}
 			return saveArenas(p, arguments);
+		} else if (args[0].equalsIgnoreCase("setmin")) {
+			if (args.length != 3) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames setmin [ArenaID] [Number]");
+				return false;
+			}
+			return setMin(p, args[1], args[2]);
+		} else if (args[0].equalsIgnoreCase("setmax")) {
+			if (args.length != 3) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames setmax [ArenaID] [Number]");
+				return false;
+			}
+			return setMax(p, args[1], args[2]);
 		}
 		else {
 			sender.sendMessage("Invalid Command!");
@@ -226,7 +244,7 @@ public class ArenaCommands implements CommandExecutor {
 		return true;
 	}
 	
-	private boolean setRegion(Player p, String arenaID) {
+	private boolean setRegion(Player p, String arenaID, @Nullable String regionID) {
 		
 		if (!p.hasPermission("drminigames.setregion." + arenaID)) {
 			p.sendMessage("You don't have permission for this command! (drminigames.setregion." + arenaID + ")");
@@ -250,7 +268,7 @@ public class ArenaCommands implements CommandExecutor {
 				p.sendMessage("Arena " + arenaID + " doesn't exist!");
 				return false;
 			}
-			arena.setRegion(r);
+			arena.setRegion(r, regionID);
 		} catch (IncompleteRegionException e) {
 			p.sendMessage("Please choose a region for the arena!");
 			return false;
@@ -435,7 +453,7 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		if (typeName.equalsIgnoreCase("DRColorShooting")) {
-			arena.setType(new DRColorShooting(args));
+			arena.setType(new DRColorShooting(arena, args));
 		} else {
 			p.sendMessage("Type doesn't exist!");
 			return false;
@@ -486,6 +504,60 @@ public class ArenaCommands implements CommandExecutor {
 		
 		p.sendMessage("Arenas Have Beean Successfully Saved!");
 		return true;
+	}
+	
+	private boolean setMin(Player p, String arenaID, String num) {
+		
+		if (!p.hasPermission("drminigames.setmin." + arenaID)) {
+			p.sendMessage("You don't have permission for this command! (drminigames.setmin." + arenaID + ")");
+			return false;
+		}
+		
+		if (!ArenasManager.getInstance().doesExist(arenaID)) {
+			p.sendMessage("Arena " + arenaID + " doesn't exist!");
+			return false;
+		}
+		
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
+		
+		try {
+			int number = Integer.valueOf(num);
+			if (!arena.setMinNumOfPlayers(number)) {
+				p.sendMessage("Number must be bigger than 0!");
+				return false;
+			}
+			return true;
+		} catch (NumberFormatException exception) {
+			p.sendMessage("Not Valid Number!");
+			return false;
+		}
+	}
+	
+	private boolean setMax(Player p, String arenaID, String num) {
+		
+		if (!p.hasPermission("drminigames.setmin." + arenaID)) {
+			p.sendMessage("You don't have permission for this command! (drminigames.setmin." + arenaID + ")");
+			return false;
+		}
+		
+		if (!ArenasManager.getInstance().doesExist(arenaID)) {
+			p.sendMessage("Arena " + arenaID + " doesn't exist!");
+			return false;
+		}
+		
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
+		
+		try {
+			int number = Integer.valueOf(num);
+			if (!arena.setMaxNumOfPlayers(number)) {
+				p.sendMessage("Number must be bigger than 0!");
+				return false;
+			}
+			return true;
+		} catch (NumberFormatException exception) {
+			p.sendMessage("Not Valid Number!");
+			return false;
+		}
 	}
 
 }
