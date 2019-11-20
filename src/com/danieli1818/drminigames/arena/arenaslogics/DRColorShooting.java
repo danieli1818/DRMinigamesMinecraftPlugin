@@ -32,6 +32,8 @@ public class DRColorShooting implements ArenaLogic {
 	private BiMap<String, List<Material>> teamColorsBlocks;
 	private Map<Material, Integer> blocksPoints;
 	private int numOfBlocksPerTeam;
+	private Thread thread;
+	private volatile Boolean shouldStop;
 	
 //	private class TeamColorBlock {
 //		
@@ -67,8 +69,28 @@ public class DRColorShooting implements ArenaLogic {
 
 	@Override
 	public void start(Arena arena) {
+		synchronized(this.shouldStop) {
+			this.shouldStop = false;
+			this.shouldStop.notifyAll();
+		}
+		setCurrentThread();
 		setTeamsToPlayers();
 		teleportPlayersToArena();
+		spawnRandomTeamBlocks();
+		synchronized(this.shouldStop) {
+			if (!this.shouldStop) {
+				while (!this.shouldStop) {
+					try {
+						this.shouldStop.wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						// e.printStackTrace();
+					}
+				}
+
+			}
+		}
+		finish();
 		
 	}
 
@@ -166,6 +188,29 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private Material getRandomMaterialOfTeam(String team) {
 		return this.teamColorsBlocks.get(team).get(0);
+	}
+	
+	public boolean stop() {
+		synchronized(this.shouldStop) {
+			this.shouldStop = true;
+			this.shouldStop.notifyAll();
+		}
+		return true;
+	}
+	
+	public void forceStop() {
+		stop();
+		if (this.thread != null && this.thread.isAlive()) {
+			this.thread.interrupt();
+		}
+	}
+	
+	private void setCurrentThread() {
+		this.thread = Thread.currentThread();
+	}
+	
+	private void finish() {
+		
 	}
 
 }

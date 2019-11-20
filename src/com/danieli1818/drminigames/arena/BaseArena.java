@@ -566,5 +566,15 @@ public class BaseArena extends Observable implements Arena {
 		this.maxNumPlayers = num;
 		return true;
 	}
+	
+	public boolean stop() {
+		cancelTimer();
+		return this.al.stop();
+	}
+	
+	public void forceStop() {
+		cancelTimer();
+		this.al.forceStop();
+	}
 
 }

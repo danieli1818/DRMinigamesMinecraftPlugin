@@ -73,4 +73,8 @@ public interface Arena {
 	
 	public boolean setMaxNumOfPlayers(int num);
 	
+	public boolean stop();
+	
+	public void forceStop();
+	
 }

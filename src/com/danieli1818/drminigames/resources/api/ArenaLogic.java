@@ -24,4 +24,8 @@ public interface ArenaLogic extends Observer {
 		
 	}
 	
+	public boolean stop();
+	
+	public void forceStop();
+	
 }
