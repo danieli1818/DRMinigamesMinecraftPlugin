@@ -16,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
@@ -211,6 +212,44 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void finish() {
 		
+	}
+	
+	public void command(Player player, String[] args) {
+		if (args.length <= 0) {
+			return;
+		}
+		
+		String command = args[0];
+		
+		if (command.equalsIgnoreCase("addblock")) {
+			if (args.length < 2 || args.length > 3) {
+				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] addblock [TeamID] {Block}");
+				return;
+			}
+		}
+	}
+	
+	private void addBlock(Player player, String teamID, String block) {
+		
+		if (!player.hasPermission("drminigames.drcolorshooting.addblock." + this.arena.getID())) {
+			player.sendMessage("You don't have permission to run this command! (drminigames.drcolorshooting.addblock." + this.arena.getID() + ")");
+			return;
+		}
+		
+		if (!this.teamColors.contains(teamID)) {
+			player.sendMessage("Team " + teamID + " doesn't exist!");
+		}
+		
+		if (block == null) {
+			
+			ItemStack holdingItem = player.getInventory().getItemInMainHand();
+			
+			if (holdingItem == null) {
+				player.sendMessage("You didn't type block type nor hold a block in your main hand!");
+				return;
+			}
+			
+		}
 	}
 
 }

@@ -34,6 +34,8 @@ import com.sk89q.worldedit.regions.Region;
 
 public class BaseArena extends Observable implements Arena {
 	
+	private final String id;
+	
 	private List<UUID> players;
 	
 	private Map<String, Location> spawnLocation;
@@ -68,6 +70,7 @@ public class BaseArena extends Observable implements Arena {
 	private GameState state;
 	
 	public BaseArena(String id) {
+		this.id = id;
 		this.players = Collections.synchronizedList(new ArrayList<UUID>());
 		this.minNumPlayers = -1;
 		this.maxNumPlayers = -1;
@@ -575,6 +578,14 @@ public class BaseArena extends Observable implements Arena {
 	public void forceStop() {
 		cancelTimer();
 		this.al.forceStop();
+	}
+	
+	public void sendCommand(Player player, String[] args) {
+		this.al.command(player, args);
+	}
+	
+	public String getID() {
+		return this.id;
 	}
 
 }

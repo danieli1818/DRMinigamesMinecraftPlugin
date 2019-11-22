@@ -163,6 +163,22 @@ public class ArenaCommands implements CommandExecutor {
 				return false;
 			}
 			return setMax(p, args[1], args[2]);
+		} else if (args[0].equalsIgnoreCase("stop")) {
+			if (args.length != 2) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames stop [ArenaID]");
+				return false;
+			}
+			return stopArena(p, args[1]);
+		} else if (args[0].equalsIgnoreCase("command")) {
+			if (args.length <= 1) {
+				p.sendMessage("Invalid Syntax. Correct Syntax is: /DRMinigames command [ArenaID] ...");
+				return false;
+			}
+			String[] arguments = new String[args.length - 2];
+			for (int i = 2; i < args.length; i++) {
+				arguments[i - 2] = args[i];
+			}
+			return sendCommandToArena(p, args[1], arguments);
 		}
 		else {
 			sender.sendMessage("Invalid Command!");
@@ -526,6 +542,7 @@ public class ArenaCommands implements CommandExecutor {
 				p.sendMessage("Number must be bigger than 0!");
 				return false;
 			}
+			p.sendMessage("Successfully Set Min Number Of Players!");
 			return true;
 		} catch (NumberFormatException exception) {
 			p.sendMessage("Not Valid Number!");
@@ -553,11 +570,50 @@ public class ArenaCommands implements CommandExecutor {
 				p.sendMessage("Number must be bigger than 0!");
 				return false;
 			}
+			p.sendMessage("Successfully Set Max Number Of Players!");
 			return true;
 		} catch (NumberFormatException exception) {
 			p.sendMessage("Not Valid Number!");
 			return false;
 		}
+	}
+	
+	private boolean stopArena(Player p, String arenaID) {
+		
+		if (!p.hasPermission("drminigames.stop." + arenaID)) {
+			p.sendMessage("You don't have permission for this command! (drminigames.stop." + arenaID + ")");
+			return false;
+		}
+		
+		if (!ArenasManager.getInstance().doesExist(arenaID)) {
+			p.sendMessage("Arena " + arenaID + " doesn't exist!");
+			return false;
+		}
+		
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
+		
+		return arena.stop();
+		
+	}
+	
+	private boolean sendCommandToArena(Player p, String arenaID, String[] args) {
+		
+		if (!p.hasPermission("drminigames.sendcommand." + arenaID)) {
+			p.sendMessage("You don't have permission for this command! (drminigames.sendcommand." + arenaID + ")");
+			return false;
+		}
+		
+		if (!ArenasManager.getInstance().doesExist(arenaID)) {
+			p.sendMessage("Arena " + arenaID + " doesn't exist!");
+			return false;
+		}
+		
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
+		
+		arena.sendCommand(p, args);
+		
+		return true;
+		
 	}
 
 }

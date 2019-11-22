@@ -6,6 +6,7 @@ import java.util.Timer;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
 import com.danieli1818.drminigames.arena.kits.Kit;
@@ -76,5 +77,9 @@ public interface Arena {
 	public boolean stop();
 	
 	public void forceStop();
+	
+	public void sendCommand(Player player, String[] args);
+	
+	public String getID();
 	
 }

@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.bukkit.entity.Player;
+
 public interface ArenaLogic extends Observer {
 
 	public void start(Arena arena);
@@ -27,5 +29,7 @@ public interface ArenaLogic extends Observer {
 	public boolean stop();
 	
 	public void forceStop();
+	
+	public void command(Player player, String[] args);
 	
 }
