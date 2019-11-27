@@ -82,4 +82,6 @@ public interface Arena {
 	
 	public String getID();
 	
+	public boolean isRunning();
+	
 }

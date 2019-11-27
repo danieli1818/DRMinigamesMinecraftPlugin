@@ -17,6 +17,7 @@ public class MinigamesEventsListener implements Listener {
 		if (entity != null && entity instanceof Player) {
 			Player player = (Player)entity;
 			Arena arena = ArenasManager.getInstance().getArena(player.getUniqueId());
+			arena.sendEvent(event);
 		}
 	}
 	

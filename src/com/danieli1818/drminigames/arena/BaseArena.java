@@ -562,6 +562,10 @@ public class BaseArena extends Observable implements Arena {
 		return true;
 	}
 	
+	public boolean isRunning() {
+		return this.state == GameState.RUNNING;
+	}
+	
 	public boolean setMaxNumOfPlayers(int num) {
 		if (num <= 0) {
 			return false;
