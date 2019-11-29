@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observable;
+import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -21,6 +24,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Team;
 
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
@@ -39,7 +48,9 @@ public class DRColorShooting implements ArenaLogic {
 	private int numOfBlocksPerTeam;
 	private Thread thread;
 	private volatile Boolean shouldStop;
-	private Map<String, Integer> points;
+	private Random rnd;
+	private Map<String, String> teamColorsPrefixes;
+	private Scoreboard board;
 	
 //	private class TeamColorBlock {
 //		
@@ -63,6 +74,8 @@ public class DRColorShooting implements ArenaLogic {
 		this.playersColors = HashBiMap.create();
 		this.teamColorsBlocks = HashBiMap.create();
 		this.blocksPoints = new HashMap<Material, Integer>();
+		this.rnd = new Random();
+		this.teamColorsPrefixes = new HashMap<String, String>();
 	}
 	
 	public DRColorShooting(Arena arena) {
@@ -71,6 +84,8 @@ public class DRColorShooting implements ArenaLogic {
 		this.playersColors = HashBiMap.create();
 		this.teamColorsBlocks = HashBiMap.create();
 		this.blocksPoints = new HashMap<Material, Integer>();
+		this.rnd = new Random();
+		this.teamColorsPrefixes = new HashMap<String, String>();
 	}
 
 	@Override
@@ -83,7 +98,7 @@ public class DRColorShooting implements ArenaLogic {
 		setTeamsToPlayers();
 		teleportPlayersToArena();
 		spawnRandomTeamBlocks();
-		resetPoints();
+		this.board = initializeScoreboard(this.teamColors);
 		synchronized(this.shouldStop) {
 			if (!this.shouldStop) {
 				while (!this.shouldStop) {
@@ -144,7 +159,13 @@ public class DRColorShooting implements ArenaLogic {
 			return;
 		}
 		int points = this.blocksPoints.get(block.getType());
-		this.points.put(team, this.points.get(team) + points);
+		Set<Score> scores = this.board.getScores(team);
+		if (scores == null || scores.isEmpty()) {
+			return;
+		}
+		Score score = scores.iterator().next();
+		score.setScore(score.getScore() + points);
+		spawnRandomBlock(team);
 	}
 	
 	private String getBlockTeam(Block block) {
@@ -231,7 +252,16 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private Material getRandomMaterialOfTeam(String team) {
-		return this.teamColorsBlocks.get(team).get(0);
+		List<Material> materials = this.teamColorsBlocks.get(team);
+		
+		if (materials == null) {
+			return null;
+		}
+		
+		int length = materials.size();
+		
+		int randomIndex = rnd.nextInt(length);
+		return materials.get(randomIndex);
 	}
 	
 	public boolean stop() {
@@ -323,12 +353,81 @@ public class DRColorShooting implements ArenaLogic {
 		this.teamColorsBlocks.get(teamID).add(material);
 		this.blocksPoints.put(material, points);
 	}
-	
-	private void resetPoints() {
-		this.points = new HashMap<String, Integer>();
-		for (String team : this.teamColors) {
-			this.points.put(team, 0);
+		
+	private boolean spawnRandomBlock(String team) {
+		
+		Material randomMaterial = getRandomMaterialOfTeam(team);
+		
+		if (randomMaterial == null) {
+			return false;
 		}
+		
+		Region region = this.arena.getRegions().get(team);
+		
+		if (region == null) {
+			return false;
+		}
+		
+		List<Location> locations = RegionUtils.getRandomNBlocksInRegion(region, 1, (Location location)->location.getBlock().getType() == Material.AIR);
+		
+		if (locations == null || locations.isEmpty()) {
+			return false;
+		}
+		
+		locations.get(0).getBlock().setType(randomMaterial);
+		
+		return true;
+		
+	}
+	
+	private Scoreboard initializeScoreboard(List<String> teams) {
+		
+		ScoreboardManager manager = Bukkit.getScoreboardManager();
+		
+		Scoreboard scoreboard = manager.getNewScoreboard();
+		
+		for (String teamID : teams) {
+			
+			Team team = scoreboard.registerNewTeam(teamID);
+			
+			String prefix;
+			
+			if (this.teamColorsPrefixes.containsKey(teamID)) {
+				
+				prefix = ChatColor.translateAlternateColorCodes('&', this.teamColorsPrefixes.get(teamID));
+				
+			} else {
+				
+				prefix = "[" + teamID + "]";
+				
+			}
+			
+			team.setPrefix(prefix);
+			
+			team.setDisplayName(teamID);
+			
+			team.setCanSeeFriendlyInvisibles(true);
+			
+			team.setAllowFriendlyFire(false);
+			
+		}
+		
+		Objective objective = scoreboard.registerNewObjective("showscores", "scores");
+		
+		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+		
+		objective.setDisplayName("Scores:");
+		
+		for (String teamID : teams) {
+			
+			Score score = objective.getScore(teamID);
+			
+			score.setScore(0);
+			
+		}
+		
+		return scoreboard;
+		
 	}
 
 }
