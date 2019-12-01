@@ -8,9 +8,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Observable;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -34,8 +36,10 @@ import org.bukkit.scoreboard.Team;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.RegionUtils;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Multimaps;
 import com.sk89q.worldedit.regions.Region;
 
 public class DRColorShooting implements ArenaLogic {
@@ -51,6 +55,7 @@ public class DRColorShooting implements ArenaLogic {
 	private Random rnd;
 	private Map<String, String> teamColorsPrefixes;
 	private Scoreboard board;
+	private NavigableMap<Integer, List<String>> rewardsCommands;
 	
 //	private class TeamColorBlock {
 //		
@@ -76,6 +81,7 @@ public class DRColorShooting implements ArenaLogic {
 		this.blocksPoints = new HashMap<Material, Integer>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
+		this.rewardsCommands = new TreeMap<Integer, List<String>>();
 	}
 	
 	public DRColorShooting(Arena arena) {
@@ -86,6 +92,7 @@ public class DRColorShooting implements ArenaLogic {
 		this.blocksPoints = new HashMap<Material, Integer>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
+		this.rewardsCommands = new TreeMap<Integer, List<String>>();
 	}
 
 	@Override
@@ -99,6 +106,7 @@ public class DRColorShooting implements ArenaLogic {
 		teleportPlayersToArena();
 		spawnRandomTeamBlocks();
 		this.board = initializeScoreboard(this.teamColors);
+		setSidebarScoreboardToPlayers();
 		synchronized(this.shouldStop) {
 			if (!this.shouldStop) {
 				while (!this.shouldStop) {
@@ -285,6 +293,16 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void finish() {
 		
+		List<String> teams = getWinningTeamsByOrder();
+		
+		int currentPlace = 1;
+		
+		for (String team : teams) {
+			
+			giveRewardsToTeam(team, currentPlace);
+			
+		}
+		
 	}
 	
 	public void command(Player player, String[] args) {
@@ -427,6 +445,106 @@ public class DRColorShooting implements ArenaLogic {
 		}
 		
 		return scoreboard;
+		
+	}
+	
+	private void setSidebarScoreboardToPlayers() {
+		
+		List<UUID> uuids = this.arena.getPlayers();
+		
+		for (UUID uuid : uuids) {
+			
+			Player player = Bukkit.getPlayer(uuid);
+			
+			if (player != null) {
+				
+				player.setScoreboard(this.board);
+				
+			}
+			
+		}
+		
+	}
+	
+	private List<String> getWinningTeamsByOrder() {
+		
+		List<String> teams = new ArrayList<String>();
+		
+		for (String team : this.teamColors) {
+			
+			teams.add(team);
+			
+		}
+		
+		teams.sort((String team1, String team2) -> {
+			
+			Set<Score> team1Scores = this.board.getScores(team1);
+			Set<Score> team2Scores = this.board.getScores(team2);
+			
+			if (team1Scores == null || team1Scores.isEmpty() || team2Scores == null || team2Scores.isEmpty()) {
+				
+				return 1;
+				
+			}
+			
+			Score team1Score = team1Scores.iterator().next();
+			Score team2Score = team2Scores.iterator().next();
+			
+			return team1Score.getScore() - team2Score.getScore();
+			
+		});
+		
+		return teams;
+		
+	}
+	
+	private void giveRewardsToTeam(String team, int place) {
+
+		Entry<Integer, List<String>> teamRewardsEntry = this.rewardsCommands.floorEntry(place);
+		
+		if (teamRewardsEntry == null) {
+			
+			return;
+			
+		}
+		
+		List<String> teamRewards = teamRewardsEntry.getValue();
+		
+		if (teamRewards == null) {
+			
+			return;
+			
+		}
+		
+		Map<String, List<UUID>> playersTeamsMap = Multimaps.asMap(Multimaps.invertFrom(Multimaps.forMap(this.playersColors), ArrayListMultimap.create()));
+		
+		List<UUID> players = playersTeamsMap.get(team);
+		
+		if (players == null) {
+			
+			return;
+			
+		}
+		
+		for (UUID uuid : players) {
+			
+			Player player = Bukkit.getPlayer(uuid);
+			
+			if (player == null) {
+				
+				continue;
+				
+			}
+			
+			for (String command : teamRewards) {
+				
+				Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("<player>", player.getName()));
+				
+			}
+			
+		}
+		
+
 		
 	}
 
