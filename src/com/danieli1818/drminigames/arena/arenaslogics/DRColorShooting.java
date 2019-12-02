@@ -313,7 +313,7 @@ public class DRColorShooting implements ArenaLogic {
 		String command = args[0];
 		
 		if (command.equalsIgnoreCase("addblock")) {
-			if (args.length < 5 || args.length > 6) {
+			if (args.length < 3 || args.length > 4) {
 				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] addblock [TeamID] [Points] {Block}");
 				return;
 			}
@@ -321,10 +321,53 @@ public class DRColorShooting implements ArenaLogic {
 				int points = Integer.parseInt(args[4]);
 				String block = args.length == 6 ? args[5] : null;
 				addBlock(player, args[3], block, points);
+				player.sendMessage("Successfully Add Block!");
 			} catch (NumberFormatException e) {
 				player.sendMessage("Points should be an integer!");
 				return;
 			}
+		} else if (command.equalsIgnoreCase("setprefix")) {
+			if (args.length != 3) {
+				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] setprefix [TeamID] [Prefix]");
+				return;
+			}
+			if (!this.teamColors.contains(args[1])) {
+				player.sendMessage("Team " + args[1] + " doesn't exist!");
+				return;
+			}
+			this.teamColorsPrefixes.put(args[1], args[2]);
+			player.sendMessage("Successfully Set Prefix!");
+		} else if (command.equalsIgnoreCase("addteams")) {
+			if (args.length < 2) {
+				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] addteams [TeamID1] [TeamID2] [TeamID3] [TeamID4] ...");
+				return;
+			}
+			for (int i = 1; i < args.length; i++) {
+				if (this.teamColors.contains(args[i])) {
+					player.sendMessage("Team " + args[i] + " already exists!");
+					continue;
+				}
+				this.teamColors.add(args[i]);
+				player.sendMessage("Team " + args[i] + " has been added successfully!");
+			}
+			
+			player.sendMessage("Successfully Add Team " + args[1] + "!");
+		} else if (command.equalsIgnoreCase("removeteams")) {
+			if (args.length < 2) {
+				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] removeteams [TeamID1] [TeamID2] [TeamID3] [TeamID4] ...");
+				return;
+			}
+			for (int i = 1; i < args.length; i++) {
+				if (this.teamColors.contains(args[i])) {
+					this.teamColors.remove(args[i]);
+					player.sendMessage("Successfully Removed Team " + args[i] + "!");
+				} else {
+					player.sendMessage("Team " + args[i] + " Didn't Exist!");
+				}
+				continue;
+			}
+		} else {
+			player.sendMessage("Command doesn't exist! Use /drminigame command [ArenaID] help for help!");
 		}
 	}
 	
@@ -503,17 +546,13 @@ public class DRColorShooting implements ArenaLogic {
 		Entry<Integer, List<String>> teamRewardsEntry = this.rewardsCommands.floorEntry(place);
 		
 		if (teamRewardsEntry == null) {
-			
 			return;
-			
 		}
 		
 		List<String> teamRewards = teamRewardsEntry.getValue();
 		
 		if (teamRewards == null) {
-			
 			return;
-			
 		}
 		
 		Map<String, List<UUID>> playersTeamsMap = Multimaps.asMap(Multimaps.invertFrom(Multimaps.forMap(this.playersColors), ArrayListMultimap.create()));
@@ -521,9 +560,7 @@ public class DRColorShooting implements ArenaLogic {
 		List<UUID> players = playersTeamsMap.get(team);
 		
 		if (players == null) {
-			
 			return;
-			
 		}
 		
 		for (UUID uuid : players) {
@@ -531,15 +568,11 @@ public class DRColorShooting implements ArenaLogic {
 			Player player = Bukkit.getPlayer(uuid);
 			
 			if (player == null) {
-				
 				continue;
-				
 			}
 			
 			for (String command : teamRewards) {
-				
 				Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("<player>", player.getName()));
-				
 			}
 			
 		}
