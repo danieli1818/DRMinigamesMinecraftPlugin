@@ -12,11 +12,16 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BlockVector;
 
 import com.danieli1818.drminigames.arena.kits.Kit;
@@ -60,10 +65,14 @@ public class BaseArena extends Observable implements Arena {
 	
 	private Map<String, Region> regions;
 	
+	private Scoreboard board;
+	
+	private long timeLeftForCountdown;
+	
 	private enum GameState {
 		UNAVAILABLE,
 		WAITING,
-		COOLDOWN,
+		COUNTDOWN,
 		RUNNING
 	}
 	
@@ -81,6 +90,8 @@ public class BaseArena extends Observable implements Arena {
 		this.countdown = 10000;
 		this.kits = Collections.synchronizedList(new ArrayList<Kit>());
 		this.regions = new HashMap<String, Region>();
+		this.board = Bukkit.getScoreboardManager().getNewScoreboard();
+		this.timeLeftForCountdown = this.countdown;
 		reset();
 	}
 	
@@ -99,18 +110,28 @@ public class BaseArena extends Observable implements Arena {
 		this.players.add(p.getUniqueId());
 		notifyObservers(new JoinEvent(p));
 		p.teleport(this.waitingLocation);
-		if (this.state != GameState.COOLDOWN && this.players.size() >= this.minNumPlayers) {
-			this.state = GameState.COOLDOWN;
+		p.setScoreboard(this.board);
+		if (this.state != GameState.COUNTDOWN && this.players.size() >= this.minNumPlayers) {
+			this.state = GameState.COUNTDOWN;
 			Arena thisArena = this;
-			startTimer(this.countdown, new TimerTask() {
+			this.timeLeftForCountdown = this.countdown;
+			updateScoreboard();
+			startTimer(this.timeLeftForCountdown % 1000, new TimerTask() {
 				
 				@Override
 				public void run() {
-					state = GameState.RUNNING;
-					al.start(thisArena);
+					timeLeftForCountdown -= 1000;
+					if (timeLeftForCountdown <= 0) {
+						state = GameState.RUNNING;
+						this.cancel();
+						al.start(thisArena);
+					} else {
+						updateScoreboard();
+					}
+
 					
 				}
-			});
+			}, 1000);
 		}
 		return true;
 	}
@@ -123,19 +144,20 @@ public class BaseArena extends Observable implements Arena {
 		if (this.players.isEmpty()) {
 			finishGame();
 		} else {
-			if (this.state == GameState.COOLDOWN && this.players.size() < this.minNumPlayers) {
+			if (this.state == GameState.COUNTDOWN && this.players.size() < this.minNumPlayers) {
 				this.state = GameState.WAITING;
 			}
 		}
 		Player p = Bukkit.getPlayer(id);
 		p.teleport(this.leaveLocation);
+		p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
 		return true;
 	}
 	
 	public void reset() {
 		this.players.clear();
 		if (this.state != GameState.UNAVAILABLE) {
-			if (this.state == GameState.COOLDOWN) {
+			if (this.state == GameState.COUNTDOWN) {
 				cancelTimer();
 			}
 			this.state = GameState.WAITING;
@@ -162,8 +184,8 @@ public class BaseArena extends Observable implements Arena {
 		if (this.state == GameState.RUNNING) {
 			finishGame();
 		} else {
-			if (this.state == GameState.WAITING || this.state == GameState.COOLDOWN) {
-				if (this.state == GameState.COOLDOWN) {
+			if (this.state == GameState.WAITING || this.state == GameState.COUNTDOWN) {
+				if (this.state == GameState.COUNTDOWN) {
 					cancelTimer();
 				}
 				this.state = GameState.UNAVAILABLE;
@@ -219,9 +241,9 @@ public class BaseArena extends Observable implements Arena {
 		}
 	}
 	
-	private void startTimer(long delay, TimerTask timerTask) {
+	private void startTimer(long delay, TimerTask timerTask, long period) {
 		// Timer
-		this.timer.schedule(timerTask, delay);
+		this.timer.scheduleAtFixedRate(timerTask, delay, period);
 	}
 	
 	private void cancelTimer() {
@@ -590,6 +612,49 @@ public class BaseArena extends Observable implements Arena {
 	
 	public String getID() {
 		return this.id;
+	}
+	
+	private void initializeScoreboard() {
+		if (this.board.getObjective("status") == null) {
+			this.board.registerNewObjective("status", "status");
+		}
+		Objective o = this.board.getObjective("status");
+		o.setDisplaySlot(DisplaySlot.SIDEBAR);
+		o.setDisplayName("Minigame\n");
+	}
+	
+	private String getStateString() {
+		if (this.state == GameState.COUNTDOWN) {
+			return "Countdown";
+		} else if (this.state == GameState.RUNNING) {
+			return "Running";
+		} else if (this.state == GameState.UNAVAILABLE) {
+			return "Unavailable";
+		} else {
+			return "Waiting";
+		}
+	}
+	
+	private String getStatusString() {
+		String result;
+		if (this.al != null) {
+			result = this.al.getID();
+		} else {
+			result = "DRMinigame";
+		}
+		result += "\n";
+		if (this.state != GameState.COUNTDOWN) {
+			result += getStateString();
+		} else {
+			result += this.timeLeftForCountdown;
+		}
+		
+		return result;
+	}
+	
+	private void updateScoreboard() {
+		Objective o = this.board.getObjective("status");
+		o.setDisplayName(getStatusString());
 	}
 
 }
