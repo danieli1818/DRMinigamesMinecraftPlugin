@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.NavigableMap;
 import java.util.Observable;
 import java.util.Random;
@@ -19,6 +20,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -45,8 +47,6 @@ import com.sk89q.worldedit.regions.Region;
 public class DRColorShooting implements ArenaLogic {
 	
 	private Arena arena;
-	private List<String> teamColors;
-	private BiMap<UUID, String> playersColors;
 	private BiMap<String, List<Material>> teamColorsBlocks;
 	private Map<Material, Integer> blocksPoints;
 	private int numOfBlocksPerTeam;
@@ -75,24 +75,25 @@ public class DRColorShooting implements ArenaLogic {
 	
 	public DRColorShooting(Arena arena, List<String> teamColors) {
 		this.arena = arena;
-		this.teamColors = teamColors;
-		this.playersColors = HashBiMap.create();
 		this.teamColorsBlocks = HashBiMap.create();
+		for (String team : teamColors) {
+			this.teamColorsBlocks.put(team, new ArrayList<Material>());
+		}
 		this.blocksPoints = new HashMap<Material, Integer>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
+		this.board = initializeScoreboard(teamColors);
 	}
 	
 	public DRColorShooting(Arena arena) {
 		this.arena = arena;
-		this.teamColors = new ArrayList<String>();
-		this.playersColors = HashBiMap.create();
 		this.teamColorsBlocks = HashBiMap.create();
 		this.blocksPoints = new HashMap<Material, Integer>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
+		this.board = initializeScoreboard(new ArrayList<String>());
 	}
 
 	@Override
@@ -102,10 +103,10 @@ public class DRColorShooting implements ArenaLogic {
 			this.shouldStop.notifyAll();
 		}
 		setCurrentThread();
+		preStartInitialize();
 		setTeamsToPlayers();
 		teleportPlayersToArena();
 		spawnRandomTeamBlocks();
-		this.board = initializeScoreboard(this.teamColors);
 		setSidebarScoreboardToPlayers();
 		synchronized(this.shouldStop) {
 			if (!this.shouldStop) {
@@ -113,7 +114,6 @@ public class DRColorShooting implements ArenaLogic {
 					try {
 						this.shouldStop.wait();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						// e.printStackTrace();
 					}
 				}
@@ -128,8 +128,9 @@ public class DRColorShooting implements ArenaLogic {
 	public boolean canBeAvailable(Arena arena) {
 		Map<String, Location> spawns = arena.getSpawnLocation();
 		Map<String, Region> regions = arena.getRegions();
-		for (String color : teamColors) {
-			if (spawns.get(color) == null || regions.get(color) == null) {
+		for (Team team : getTeams()) {
+			String teamName = team.getName();
+			if (spawns.get(teamName) == null || regions.get(teamName) == null) {
 				return false;
 			}
 		}
@@ -141,7 +142,6 @@ public class DRColorShooting implements ArenaLogic {
 	
 	@Override
 	public void update(Observable o, Object arg) {
-		// TODO Auto-generated method stub
 		ArenaLogic.super.update(o, arg);
 		if (!this.arena.isRunning()) {
 			return;
@@ -208,24 +208,25 @@ public class DRColorShooting implements ArenaLogic {
 	private void setTeamsToPlayers() {
 		List<UUID> uuids = this.arena.getPlayers();
 		Collections.shuffle(uuids);
-		Iterator<String> currentTeamColor = teamColors.iterator();
+		Set<Team> teams = this.board.getTeams();
+		Iterator<Team> currentTeamColor = teams.iterator();
 		for (UUID uuid : uuids) {
 			if (!currentTeamColor.hasNext()) {
-				currentTeamColor = teamColors.iterator();
+				currentTeamColor = teams.iterator();
 			}
-			this.playersColors.put(uuid, currentTeamColor.next());
+			currentTeamColor.next().addPlayer(Bukkit.getOfflinePlayer(uuid));
 		}
 	}
 	
 	private void teleportPlayersToArena() {
-		List<UUID> uuids = this.arena.getPlayers();
 		Server server = Bukkit.getServer();
 		Map<String, Location> spawns = this.arena.getSpawnLocation();
-		for (UUID uuid : uuids) {
-			String teamColor = this.playersColors.get(uuid);
-			Player player = server.getPlayer(uuid);
-			if (player != null) {
-				player.teleport(spawns.get(teamColor));
+		for (Team team : getTeams()) {
+			for (OfflinePlayer offlinePlayer : team.getPlayers()) {
+				Player player = server.getPlayer(offlinePlayer.getUniqueId());
+				if (player != null) {
+					player.teleport(spawns.get(team.getName()));
+				}
 			}
 		}
 	}
@@ -233,27 +234,29 @@ public class DRColorShooting implements ArenaLogic {
 	private void spawnRandomTeamBlocks() {
 		Map<String, Region> regions = this.arena.getRegions();
 		Map<String, List<Location>> locationsPerRegion = new HashMap<String, List<Location>>();
-		for (String color : teamColors) {
+		for (Team team : getTeams()) {
 			
-			List<Location> locations = RegionUtils.getRandomNBlocksInRegion(regions.get(color), this.numOfBlocksPerTeam, (Location location) -> {
+			String teamName = team.getName();
+			
+			List<Location> locations = RegionUtils.getRandomNBlocksInRegion(regions.get(teamName), this.numOfBlocksPerTeam, (Location location) -> {
 				Block block = location.getBlock();
 				return block == null || block.getType() == Material.AIR;
 			});
 			
 			if (locations != null) {
-				locationsPerRegion.put(color, locations);
+				locationsPerRegion.put(teamName, locations);
 			}
 			
 		}
 
-		
-		Iterator currentTeamColor = this.teamColors.iterator();
+		Set<Team> teams = getTeams();
+		Iterator<Team> currentTeam = teams.iterator();
 		for (List<Location> locations : locationsPerRegion.values()) {
 			for (Location location : locations) {
-				if (!currentTeamColor.hasNext()) {
-					currentTeamColor = this.teamColors.iterator();
+				if (!currentTeam.hasNext()) {
+					currentTeam = teams.iterator();
 				}
-				location.getBlock().setType(getRandomMaterialOfTeam((String)currentTeamColor.next()));
+				location.getBlock().setType(getRandomMaterialOfTeam(currentTeam.next().getName()));
 			}
 		}
 
@@ -293,20 +296,23 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void finish() {
 		
-		List<String> teams = getWinningTeamsByOrder();
+		List<Team> teams = getWinningTeamsByOrder();
 		
 		int currentPlace = 1;
 		
-		for (String team : teams) {
+		for (Team team : teams) {
 			
 			giveRewardsToTeam(team, currentPlace);
 			
 		}
 		
+		reset();
+		
 	}
 	
 	public void command(Player player, String[] args) {
 		if (args.length <= 0) {
+			player.sendMessage("Command Not Found! Use /drminigames command [ArenaID] help for help!");
 			return;
 		}
 		
@@ -318,9 +324,9 @@ public class DRColorShooting implements ArenaLogic {
 				return;
 			}
 			try {
-				int points = Integer.parseInt(args[4]);
-				String block = args.length == 6 ? args[5] : null;
-				addBlock(player, args[3], block, points);
+				int points = Integer.parseInt(args[2]);
+				String block = args.length == 4 ? args[3] : null;
+				addBlock(player, args[1], block, points);
 				player.sendMessage("Successfully Add Block!");
 			} catch (NumberFormatException e) {
 				player.sendMessage("Points should be an integer!");
@@ -331,7 +337,7 @@ public class DRColorShooting implements ArenaLogic {
 				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] setprefix [TeamID] [Prefix]");
 				return;
 			}
-			if (!this.teamColors.contains(args[1])) {
+			if (!containsTeam(args[1])) {
 				player.sendMessage("Team " + args[1] + " doesn't exist!");
 				return;
 			}
@@ -343,11 +349,10 @@ public class DRColorShooting implements ArenaLogic {
 				return;
 			}
 			for (int i = 1; i < args.length; i++) {
-				if (this.teamColors.contains(args[i])) {
+				if (!addTeam(args[i])) {
 					player.sendMessage("Team " + args[i] + " already exists!");
 					continue;
 				}
-				this.teamColors.add(args[i]);
 				player.sendMessage("Team " + args[i] + " has been added successfully!");
 			}
 			
@@ -358,8 +363,8 @@ public class DRColorShooting implements ArenaLogic {
 				return;
 			}
 			for (int i = 1; i < args.length; i++) {
-				if (this.teamColors.contains(args[i])) {
-					this.teamColors.remove(args[i]);
+				if (removeTeam(args[i])) {
+					this.board.getTeam(args[i]).unregister();
 					player.sendMessage("Successfully Removed Team " + args[i] + "!");
 				} else {
 					player.sendMessage("Team " + args[i] + " Didn't Exist!");
@@ -378,7 +383,7 @@ public class DRColorShooting implements ArenaLogic {
 			return;
 		}
 		
-		if (!this.teamColors.contains(teamID)) {
+		if (!containsTeam(teamID)) {
 			player.sendMessage("Team " + teamID + " doesn't exist!");
 		}
 		
@@ -473,20 +478,6 @@ public class DRColorShooting implements ArenaLogic {
 			
 		}
 		
-		Objective objective = scoreboard.registerNewObjective("showscores", "scores");
-		
-		objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-		
-		objective.setDisplayName("Scores:");
-		
-		for (String teamID : teams) {
-			
-			Score score = objective.getScore(teamID);
-			
-			score.setScore(0);
-			
-		}
-		
 		return scoreboard;
 		
 	}
@@ -509,20 +500,20 @@ public class DRColorShooting implements ArenaLogic {
 		
 	}
 	
-	private List<String> getWinningTeamsByOrder() {
+	private List<Team> getWinningTeamsByOrder() {
 		
-		List<String> teams = new ArrayList<String>();
+		List<Team> teams = new ArrayList<Team>();
 		
-		for (String team : this.teamColors) {
+		for (Team team : getTeams()) {
 			
 			teams.add(team);
 			
 		}
 		
-		teams.sort((String team1, String team2) -> {
+		teams.sort((Team team1, Team team2) -> {
 			
-			Set<Score> team1Scores = this.board.getScores(team1);
-			Set<Score> team2Scores = this.board.getScores(team2);
+			Set<Score> team1Scores = this.board.getScores(team1.getName());
+			Set<Score> team2Scores = this.board.getScores(team2.getName());
 			
 			if (team1Scores == null || team1Scores.isEmpty() || team2Scores == null || team2Scores.isEmpty()) {
 				
@@ -541,7 +532,7 @@ public class DRColorShooting implements ArenaLogic {
 		
 	}
 	
-	private void giveRewardsToTeam(String team, int place) {
+	private void giveRewardsToTeam(Team team, int place) {
 
 		Entry<Integer, List<String>> teamRewardsEntry = this.rewardsCommands.floorEntry(place);
 		
@@ -555,17 +546,15 @@ public class DRColorShooting implements ArenaLogic {
 			return;
 		}
 		
-		Map<String, List<UUID>> playersTeamsMap = Multimaps.asMap(Multimaps.invertFrom(Multimaps.forMap(this.playersColors), ArrayListMultimap.create()));
-		
-		List<UUID> players = playersTeamsMap.get(team);
+		Set<OfflinePlayer> players = team.getPlayers();
 		
 		if (players == null) {
 			return;
 		}
 		
-		for (UUID uuid : players) {
+		for (OfflinePlayer offlinePlayer : players) {
 			
-			Player player = Bukkit.getPlayer(uuid);
+			Player player = Bukkit.getPlayer(offlinePlayer.getUniqueId());
 			
 			if (player == null) {
 				continue;
@@ -577,8 +566,58 @@ public class DRColorShooting implements ArenaLogic {
 			
 		}
 		
-
+	}
+	
+	public void reset() {
 		
+		if (this.board.getObjective("showscores") == null) {
+			this.board = initializeScoreboard(new ArrayList<String>());
+		}
+		
+		for (String entry : this.board.getEntries()) {
+			this.board.resetScores(entry);
+		}
+		
+	}
+	
+	private void preStartInitialize() {
+		
+		Objective showScores = this.board.getObjective("showscores");
+		
+		for (Team team : this.board.getTeams()) {
+			Score score = showScores.getScore(team.getName());
+			score.setScore(0);
+		}
+		
+	}
+	
+	private Set<Team> getTeams() {
+		if (this.board == null) {
+			this.board = initializeScoreboard(new ArrayList<String>());
+		}
+		return this.board.getTeams();
+	}
+	
+	private boolean containsTeam(String name) {
+		return this.board.getTeam(name) != null;
+	}
+	
+	private boolean addTeam(String name) {
+		if (containsTeam(name)) {
+			return false;
+		}
+		this.board.registerNewTeam(name);
+		this.teamColorsBlocks.put(name, new ArrayList<Material>());
+		return true;
+	}
+	
+	private boolean removeTeam(String name) {
+		if (!containsTeam(name)) {
+			return false;
+		}
+		this.board.getTeam(name).unregister();
+		this.teamColorsBlocks.remove(name);
+		return true;
 	}
 
 }
