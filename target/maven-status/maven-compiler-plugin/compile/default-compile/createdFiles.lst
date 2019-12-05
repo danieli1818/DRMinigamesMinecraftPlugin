@@ -4,8 +4,11 @@ com\danieli1818\drminigames\resources\api\ArenaLogic.class
 com\danieli1818\drminigames\arena\BaseArena.class
 com\danieli1818\drminigames\arena\ArenasLogicsManager.class
 com\danieli1818\drminigames\listeners\MinigamesEventsListener.class
+META-INF\maven\com.danieli1818\drminigames\pom.xml
 com\danieli1818\drminigames\utils\ArenasManager.class
 com\danieli1818\drminigames\DRMinigames.class
+META-INF\MANIFEST.MF
+META-INF\maven\com.danieli1818\drminigames\pom.properties
 com\danieli1818\drminigames\resources\api\arena\events\Event.class
 com\danieli1818\drminigames\arena\kits\KitsManager.class
 com\danieli1818\drminigames\resources\api\DRMinigamePlugin.class

@@ -90,7 +90,7 @@ public class BaseArena extends Observable implements Arena {
 		this.countdown = 10000;
 		this.kits = Collections.synchronizedList(new ArrayList<Kit>());
 		this.regions = new HashMap<String, Region>();
-		this.board = Bukkit.getScoreboardManager().getNewScoreboard();
+		initializeScoreboard();
 		this.timeLeftForCountdown = this.countdown;
 		reset();
 	}
@@ -110,6 +110,7 @@ public class BaseArena extends Observable implements Arena {
 		this.players.add(p.getUniqueId());
 		notifyObservers(new JoinEvent(p));
 		p.teleport(this.waitingLocation);
+		this.board.getTeam("players").addPlayer(p);
 		p.setScoreboard(this.board);
 		if (this.state != GameState.COUNTDOWN && this.players.size() >= this.minNumPlayers) {
 			this.state = GameState.COUNTDOWN;
@@ -615,12 +616,11 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private void initializeScoreboard() {
-		if (this.board.getObjective("status") == null) {
-			this.board.registerNewObjective("status", "status");
-		}
-		Objective o = this.board.getObjective("status");
+		this.board = Bukkit.getScoreboardManager().getNewScoreboard();
+		Objective o = this.board.registerNewObjective("status", "dummy");
 		o.setDisplaySlot(DisplaySlot.SIDEBAR);
 		o.setDisplayName("Minigame\n");
+		this.board.registerNewTeam("players");
 	}
 	
 	private String getStateString() {

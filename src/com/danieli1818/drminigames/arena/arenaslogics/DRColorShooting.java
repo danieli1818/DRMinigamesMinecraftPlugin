@@ -38,16 +38,12 @@ import org.bukkit.scoreboard.Team;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.RegionUtils;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Multimaps;
 import com.sk89q.worldedit.regions.Region;
 
 public class DRColorShooting implements ArenaLogic {
 	
 	private Arena arena;
-	private BiMap<String, List<Material>> teamColorsBlocks;
+	private Map<String, List<Material>> teamColorsBlocks;
 	private Map<Material, Integer> blocksPoints;
 	private int numOfBlocksPerTeam;
 	private Thread thread;
@@ -75,7 +71,7 @@ public class DRColorShooting implements ArenaLogic {
 	
 	public DRColorShooting(Arena arena, List<String> teamColors) {
 		this.arena = arena;
-		this.teamColorsBlocks = HashBiMap.create();
+		this.teamColorsBlocks = new HashMap<String, List<Material>>();
 		for (String team : teamColors) {
 			this.teamColorsBlocks.put(team, new ArrayList<Material>());
 		}
@@ -84,16 +80,18 @@ public class DRColorShooting implements ArenaLogic {
 		this.teamColorsPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
 		this.board = initializeScoreboard(teamColors);
+		this.shouldStop = false;
 	}
 	
 	public DRColorShooting(Arena arena) {
 		this.arena = arena;
-		this.teamColorsBlocks = HashBiMap.create();
+		this.teamColorsBlocks = new HashMap<String, List<Material>>();
 		this.blocksPoints = new HashMap<Material, Integer>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
 		this.board = initializeScoreboard(new ArrayList<String>());
+		this.shouldStop = false;
 	}
 
 	@Override
@@ -245,18 +243,20 @@ public class DRColorShooting implements ArenaLogic {
 			
 			if (locations != null) {
 				locationsPerRegion.put(teamName, locations);
+				System.out.println("Locations Aren't Null!");
+				if (locations.isEmpty()) {
+					System.out.println("Locations List Is Empty!");
+				}
+			} else {
+				System.out.println("Locations Are Null!");
 			}
 			
 		}
 
-		Set<Team> teams = getTeams();
-		Iterator<Team> currentTeam = teams.iterator();
-		for (List<Location> locations : locationsPerRegion.values()) {
-			for (Location location : locations) {
-				if (!currentTeam.hasNext()) {
-					currentTeam = teams.iterator();
-				}
-				location.getBlock().setType(getRandomMaterialOfTeam(currentTeam.next().getName()));
+		for (Entry<String, List<Location>> locations : locationsPerRegion.entrySet()) {
+			for (Location location : locations.getValue()) {
+				location.getBlock().setType(getRandomMaterialOfTeam(locations.getKey()));
+				System.out.println("Added Block!");
 			}
 		}
 
@@ -477,6 +477,12 @@ public class DRColorShooting implements ArenaLogic {
 			team.setAllowFriendlyFire(false);
 			
 		}
+		
+		Objective showScoresObjective = scoreboard.registerNewObjective("showscores", "dummy");
+		
+		showScoresObjective.setDisplayName("Scores:");
+		
+		showScoresObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
 		
 		return scoreboard;
 		
