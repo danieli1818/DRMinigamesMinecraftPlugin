@@ -1,4 +1,4 @@
-package com.danieli1818.drminigames.arena.arenaslogics;
+package com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +35,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.RegionUtils;
@@ -52,6 +53,7 @@ public class DRColorShooting implements ArenaLogic {
 	private Map<String, String> teamColorsPrefixes;
 	private Scoreboard board;
 	private NavigableMap<Integer, List<String>> rewardsCommands;
+	private SetCommands setCommands;
 	
 //	private class TeamColorBlock {
 //		
@@ -81,6 +83,8 @@ public class DRColorShooting implements ArenaLogic {
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
 		this.board = initializeScoreboard(teamColors);
 		this.shouldStop = false;
+		this.numOfBlocksPerTeam = 10;
+		this.setCommands = new SetCommands(this);
 	}
 	
 	public DRColorShooting(Arena arena) {
@@ -92,6 +96,8 @@ public class DRColorShooting implements ArenaLogic {
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
 		this.board = initializeScoreboard(new ArrayList<String>());
 		this.shouldStop = false;
+		this.numOfBlocksPerTeam = 10;
+		this.setCommands = new SetCommands(this);
 	}
 
 	@Override
@@ -333,16 +339,14 @@ public class DRColorShooting implements ArenaLogic {
 				return;
 			}
 		} else if (command.equalsIgnoreCase("setprefix")) {
-			if (args.length != 3) {
-				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] setprefix [TeamID] [Prefix]");
+			if (args.length < 2) {
+				this.setCommands.commands(player, null, new String[0]);
 				return;
 			}
-			if (!containsTeam(args[1])) {
-				player.sendMessage("Team " + args[1] + " doesn't exist!");
-				return;
-			}
-			this.teamColorsPrefixes.put(args[1], args[2]);
-			player.sendMessage("Successfully Set Prefix!");
+			String subCommand = args[1];
+			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
+			this.setCommands.commands(player, subCommand, arguments);
+			return;
 		} else if (command.equalsIgnoreCase("addteams")) {
 			if (args.length < 2) {
 				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] addteams [TeamID1] [TeamID2] [TeamID3] [TeamID4] ...");
@@ -604,7 +608,7 @@ public class DRColorShooting implements ArenaLogic {
 		return this.board.getTeams();
 	}
 	
-	private boolean containsTeam(String name) {
+	public boolean containsTeam(String name) {
 		return this.board.getTeam(name) != null;
 	}
 	
@@ -624,6 +628,22 @@ public class DRColorShooting implements ArenaLogic {
 		this.board.getTeam(name).unregister();
 		this.teamColorsBlocks.remove(name);
 		return true;
+	}
+	
+	public boolean addPrefixToTeam(String teamID, String prefix) {
+		boolean returnValue = false;
+		if (this.teamColorsPrefixes.containsKey(teamID)) {
+			returnValue = true;
+		}
+		this.teamColorsPrefixes.put(teamID, prefix);
+		return returnValue;
+	}
+	
+	public void setNumOfBlocksPerTeam(int num) throws NumberFormatException {
+		if (num <= 0) {
+			throw new NumberFormatException();
+		}
+		this.numOfBlocksPerTeam = num;
 	}
 
 }

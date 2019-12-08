@@ -16,7 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.danieli1818.drminigames.arena.BaseArena;
-import com.danieli1818.drminigames.arena.arenaslogics.DRColorShooting;
+import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.DRColorShooting;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.DRMinigamePlugin;
 import com.danieli1818.drminigames.utils.ArenasManager;

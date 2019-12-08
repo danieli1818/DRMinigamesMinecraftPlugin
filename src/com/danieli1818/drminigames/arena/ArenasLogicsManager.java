@@ -8,7 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import com.danieli1818.drminigames.DRMinigames;
-import com.danieli1818.drminigames.arena.arenaslogics.DRColorShooting;
+import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.DRColorShooting;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.SavingAndLoadingUtils;
