@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.danieli1818.drminigames.commands.ArenaCommands;
+import com.danieli1818.drminigames.listeners.MinigamesEventsListener;
 import com.danieli1818.drminigames.utils.ArenasManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
@@ -38,6 +39,8 @@ public final class DRMinigames extends JavaPlugin {
 		ArenasManager.getInstance().reloadArenas();
 		
 		getCommand("drminigames").setExecutor(new ArenaCommands());
+		
+		getServer().getPluginManager().registerEvents(new MinigamesEventsListener(), this);
 		
 		System.out.println("plugin has successfully loaded!!!!");
 		

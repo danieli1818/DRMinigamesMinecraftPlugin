@@ -30,8 +30,6 @@ public interface Arena {
 	
 	public ArenaLogic getAL();
 	
-	public Timer getTimer();
-	
 	public long getCountdown();
 	
 	public void addKit(Kit kit);

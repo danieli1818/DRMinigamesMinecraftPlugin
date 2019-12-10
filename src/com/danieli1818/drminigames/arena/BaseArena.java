@@ -24,6 +24,7 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BlockVector;
 
+import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.danieli1818.drminigames.arena.kits.KitsManager;
 import com.danieli1818.drminigames.resources.api.Arena;
@@ -57,8 +58,6 @@ public class BaseArena extends Observable implements Arena {
 	
 	private ArenaLogic al;
 	
-	private Timer timer;
-	
 	private long countdown;
 	
 	private List<Kit> kits;
@@ -68,6 +67,8 @@ public class BaseArena extends Observable implements Arena {
 	private Scoreboard board;
 	
 	private long timeLeftForCountdown;
+	
+	private int countdownTaskID;
 	
 	private enum GameState {
 		UNAVAILABLE,
@@ -86,12 +87,12 @@ public class BaseArena extends Observable implements Arena {
 		this.state = GameState.UNAVAILABLE;
 		this.limits = null;
 		this.spawnLocation = new HashMap<String, Location>();
-		this.timer = new Timer();
 		this.countdown = 10000;
 		this.kits = Collections.synchronizedList(new ArrayList<Kit>());
 		this.regions = new HashMap<String, Region>();
 		initializeScoreboard();
 		this.timeLeftForCountdown = this.countdown;
+		this.countdownTaskID = -1;
 		reset();
 	}
 	
@@ -117,14 +118,14 @@ public class BaseArena extends Observable implements Arena {
 			Arena thisArena = this;
 			this.timeLeftForCountdown = this.countdown;
 			updateScoreboard();
-			startTimer(this.timeLeftForCountdown % 1000, new TimerTask() {
+			startTimer(this.timeLeftForCountdown % 1000, new Runnable() {
 				
 				@Override
 				public void run() {
 					timeLeftForCountdown -= 1000;
 					if (timeLeftForCountdown <= 0) {
 						state = GameState.RUNNING;
-						this.cancel();
+						cancelTimer();
 						al.start(thisArena);
 					} else {
 						updateScoreboard();
@@ -179,8 +180,8 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean setUnavailable() {
-		if (this.timer != null) {
-			this.timer.cancel();
+		if (this.countdownTaskID != -1) {
+			cancelTimer();
 		}
 		if (this.state == GameState.RUNNING) {
 			finishGame();
@@ -242,14 +243,18 @@ public class BaseArena extends Observable implements Arena {
 		}
 	}
 	
-	private void startTimer(long delay, TimerTask timerTask, long period) {
-		// Timer
-		this.timer.scheduleAtFixedRate(timerTask, delay, period);
+	private void startTimer(long delay, Runnable runnable, long period) {
+		delay = Math.round(delay / 1000.0);
+		period = Math.round(delay / 1000.0);
+		this.countdownTaskID = Bukkit.getScheduler().scheduleAsyncRepeatingTask(DRMinigames.getPlugin(DRMinigames.class), runnable, delay * 20, period * 20);
 	}
 	
 	private void cancelTimer() {
 		// cancel timer
-		this.timer.cancel();
+		if (this.countdownTaskID != -1) {
+			Bukkit.getScheduler().cancelTask(this.countdownTaskID);
+			this.countdownTaskID = -1;
+		}
 	}
 	
 	public void setRegion(Region r) {
@@ -300,6 +305,7 @@ public class BaseArena extends Observable implements Arena {
 	
 	public boolean setType(ArenaLogic al) {
 		this.al = al;
+		addObserver(al);
 		return true;
 		
 	}
@@ -350,11 +356,6 @@ public class BaseArena extends Observable implements Arena {
 	@Override
 	public ArenaLogic getAL() {
 		return this.al;
-	}
-
-	@Override
-	public Timer getTimer() {
-		return this.timer;
 	}
 
 	@Override

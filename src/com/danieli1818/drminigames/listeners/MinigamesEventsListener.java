@@ -2,23 +2,33 @@ package com.danieli1818.drminigames.listeners;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.projectiles.ProjectileSource;
 
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.utils.ArenasManager;
 
 public class MinigamesEventsListener implements Listener {
+	
+	public MinigamesEventsListener() {}
 
 	@EventHandler
 	public void onBlockProjectileHit(ProjectileHitEvent event) {
-		Entity entity = event.getEntity();
-		if (entity != null && entity instanceof Player) {
-			Player player = (Player)entity;
+		Projectile projectile = event.getEntity();
+		if (projectile == null) {
+			return;
+		}
+		ProjectileSource shooter = projectile.getShooter();
+		if (shooter != null && shooter instanceof Player) {
+			Player player = (Player)shooter;
 			Arena arena = ArenasManager.getInstance().getArena(player.getUniqueId());
 			arena.sendEvent(event);
+			System.out.println("Event Sent!");
 		}
+		System.out.println("Event Occured!");
 	}
 	
 }

@@ -35,6 +35,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
@@ -106,12 +107,14 @@ public class DRColorShooting implements ArenaLogic {
 			this.shouldStop = false;
 			this.shouldStop.notifyAll();
 		}
-		setCurrentThread();
-		preStartInitialize();
-		setTeamsToPlayers();
-		teleportPlayersToArena();
-		spawnRandomTeamBlocks();
-		setSidebarScoreboardToPlayers();
+		int taskID = runSyncStartTasks();
+		if (taskID == -1) {
+			synchronized(this.shouldStop) {
+				this.shouldStop = true;
+			}
+			System.err.println("Error Running Sync Tasks For Starting The Game!");
+			finish();
+		}
 		synchronized(this.shouldStop) {
 			if (!this.shouldStop) {
 				while (!this.shouldStop) {
@@ -147,6 +150,7 @@ public class DRColorShooting implements ArenaLogic {
 	@Override
 	public void update(Observable o, Object arg) {
 		ArenaLogic.super.update(o, arg);
+		System.out.println("Identified An Update!");
 		if (!this.arena.isRunning()) {
 			return;
 		}
@@ -156,26 +160,45 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void onEvent(Event e) {
+		System.out.println("Identified Event!");
 		if (e instanceof ProjectileHitEvent) {
 			onProjectileHitEvent((ProjectileHitEvent)e);
 		}
 	}
 	
 	private void onProjectileHitEvent(ProjectileHitEvent event) {
+		System.out.println("Identified ProjectileHitEvent Event!");
 		Block block = event.getHitBlock();
 		if (block == null || !this.blocksPoints.containsKey(block.getType())) {
+			if (block == null) {
+				System.out.println("block is null!");
+			}
+			if (!this.blocksPoints.containsKey(block.getType())) {
+				System.out.println("blocksPoints doesn't contain this block material!");
+			}
 			return;
 		}
 		String team = getBlockTeam(block);
-		if (!this.blocksPoints.containsKey(block.getType())) {
-			return;
-		}
+		System.out.println("Team is: " + team + "!");
+//		if (!this.blocksPoints.containsKey(block.getType())) {
+//			return;
+//		}
 		int points = this.blocksPoints.get(block.getType());
-		Set<Score> scores = this.board.getScores(team);
-		if (scores == null || scores.isEmpty()) {
+		Objective showScores = this.board.getObjective("showscores");
+		if (showScores == null) {
+			System.out.println("showscores Objective Is Null!");
 			return;
 		}
-		Score score = scores.iterator().next();
+		Score score = showScores.getScore(team);
+//		Set<Score> scores = this.board.getScores(team);
+//		if (scores == null || scores.isEmpty()) {
+//			return;
+//		}
+//		Score score = scores.iterator().next();
+		if (score == null) {
+			System.out.println("score Is Null!");
+			return;
+		}
 		score.setScore(score.getScore() + points);
 		spawnRandomBlock(team);
 	}
@@ -249,20 +272,12 @@ public class DRColorShooting implements ArenaLogic {
 			
 			if (locations != null) {
 				locationsPerRegion.put(teamName, locations);
-				System.out.println("Locations Aren't Null!");
-				if (locations.isEmpty()) {
-					System.out.println("Locations List Is Empty!");
-				}
-			} else {
-				System.out.println("Locations Are Null!");
 			}
-			
 		}
 
 		for (Entry<String, List<Location>> locations : locationsPerRegion.entrySet()) {
 			for (Location location : locations.getValue()) {
 				location.getBlock().setType(getRandomMaterialOfTeam(locations.getKey()));
-				System.out.println("Added Block!");
 			}
 		}
 
@@ -644,6 +659,21 @@ public class DRColorShooting implements ArenaLogic {
 			throw new NumberFormatException();
 		}
 		this.numOfBlocksPerTeam = num;
+	}
+	
+	private int runSyncStartTasks() {
+		return Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), new Runnable() {
+			@Override
+			public void run() {
+				setCurrentThread();
+				preStartInitialize();
+				setTeamsToPlayers();
+				teleportPlayersToArena();
+				spawnRandomTeamBlocks();
+				setSidebarScoreboardToPlayers();
+				
+			}
+		});
 	}
 
 }
