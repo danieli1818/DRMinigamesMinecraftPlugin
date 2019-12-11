@@ -23,7 +23,7 @@ public interface ArenaLogic extends Observer {
 	@Override
 	default void update(Observable o, Object arg) {
 		// TODO Auto-generated method stub
-		
+		System.out.println("Updated ArenaLogic!");
 	}
 	
 	public boolean stop();

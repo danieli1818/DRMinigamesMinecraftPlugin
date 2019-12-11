@@ -26,9 +26,7 @@ public class MinigamesEventsListener implements Listener {
 			Player player = (Player)shooter;
 			Arena arena = ArenasManager.getInstance().getArena(player.getUniqueId());
 			arena.sendEvent(event);
-			System.out.println("Event Sent!");
 		}
-		System.out.println("Event Occured!");
 	}
 	
 }

@@ -570,6 +570,7 @@ public class BaseArena extends Observable implements Arena {
 
 	@Override
 	public boolean sendEvent(Event event) {
+		setChanged();
 		notifyObservers(event);
 		return true;
 	}

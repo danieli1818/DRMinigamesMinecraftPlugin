@@ -149,8 +149,6 @@ public class DRColorShooting implements ArenaLogic {
 	
 	@Override
 	public void update(Observable o, Object arg) {
-		ArenaLogic.super.update(o, arg);
-		System.out.println("Identified An Update!");
 		if (!this.arena.isRunning()) {
 			return;
 		}
@@ -160,22 +158,14 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void onEvent(Event e) {
-		System.out.println("Identified Event!");
 		if (e instanceof ProjectileHitEvent) {
 			onProjectileHitEvent((ProjectileHitEvent)e);
 		}
 	}
 	
 	private void onProjectileHitEvent(ProjectileHitEvent event) {
-		System.out.println("Identified ProjectileHitEvent Event!");
 		Block block = event.getHitBlock();
 		if (block == null || !this.blocksPoints.containsKey(block.getType())) {
-			if (block == null) {
-				System.out.println("block is null!");
-			}
-			if (!this.blocksPoints.containsKey(block.getType())) {
-				System.out.println("blocksPoints doesn't contain this block material!");
-			}
 			return;
 		}
 		String team = getBlockTeam(block);
@@ -200,7 +190,9 @@ public class DRColorShooting implements ArenaLogic {
 			return;
 		}
 		score.setScore(score.getScore() + points);
-		spawnRandomBlock(team);
+		block.setType(Material.AIR); // remove block.
+		event.getEntity().remove(); // remove projectile.
+		spawnRandomBlock(team); // spawn new block.
 	}
 	
 	private String getBlockTeam(Block block) {
