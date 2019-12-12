@@ -37,6 +37,7 @@ import org.bukkit.scoreboard.Team;
 
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
+import com.danieli1818.drminigames.common.BlockInformation;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.RegionUtils;
@@ -45,7 +46,7 @@ import com.sk89q.worldedit.regions.Region;
 public class DRColorShooting implements ArenaLogic {
 	
 	private Arena arena;
-	private Map<String, List<Material>> teamColorsBlocks;
+	private Map<String, List<BlockInformation>> teamColorsBlocks;
 	private Map<Material, Integer> blocksPoints;
 	private int numOfBlocksPerTeam;
 	private Thread thread;
@@ -74,9 +75,9 @@ public class DRColorShooting implements ArenaLogic {
 	
 	public DRColorShooting(Arena arena, List<String> teamColors) {
 		this.arena = arena;
-		this.teamColorsBlocks = new HashMap<String, List<Material>>();
+		this.teamColorsBlocks = new HashMap<String, List<BlockInformation>>();
 		for (String team : teamColors) {
-			this.teamColorsBlocks.put(team, new ArrayList<Material>());
+			this.teamColorsBlocks.put(team, new ArrayList<BlockInformation>());
 		}
 		this.blocksPoints = new HashMap<Material, Integer>();
 		this.rnd = new Random();
@@ -90,7 +91,7 @@ public class DRColorShooting implements ArenaLogic {
 	
 	public DRColorShooting(Arena arena) {
 		this.arena = arena;
-		this.teamColorsBlocks = new HashMap<String, List<Material>>();
+		this.teamColorsBlocks = new HashMap<String, List<BlockInformation>>();
 		this.blocksPoints = new HashMap<Material, Integer>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
@@ -196,10 +197,9 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private String getBlockTeam(Block block) {
-		Material material = block.getType();
-		for (Entry<String, List<Material>> entry : this.teamColorsBlocks.entrySet()) {
-			for (Material m : entry.getValue()) {
-				if (material == m) {
+		for (Entry<String, List<BlockInformation>> entry : this.teamColorsBlocks.entrySet()) {
+			for (BlockInformation m : entry.getValue()) {
+				if (m.equals(block)) {
 					return entry.getKey();
 				}
 			}
@@ -276,7 +276,7 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private Material getRandomMaterialOfTeam(String team) {
-		List<Material> materials = this.teamColorsBlocks.get(team);
+		List<BlockInformation> materials = this.teamColorsBlocks.get(team);
 		
 		if (materials == null) {
 			return null;
@@ -285,7 +285,7 @@ public class DRColorShooting implements ArenaLogic {
 		int length = materials.size();
 		
 		int randomIndex = rnd.nextInt(length);
-		return materials.get(randomIndex);
+		return materials.get(randomIndex).getMaterial();
 	}
 	
 	public boolean stop() {
@@ -399,6 +399,7 @@ public class DRColorShooting implements ArenaLogic {
 		}
 		
 		Material material = null;
+		MaterialData data = null;
 		
 		if (block == null) {
 			
@@ -410,6 +411,7 @@ public class DRColorShooting implements ArenaLogic {
 			}
 			
 			material = holdingItem.getType();
+			data = holdingItem.getData();
 			
 			if (!material.isBlock()) {
 				player.sendMessage("You didn't hold a block type item!");
@@ -418,7 +420,19 @@ public class DRColorShooting implements ArenaLogic {
 			
 		} else {
 			
-			material = Material.matchMaterial(block);
+			String[] materialIDSubID = block.split(":");
+			
+			if (materialIDSubID.length >= 1) {
+				material = Material.matchMaterial(materialIDSubID[0]);
+				
+				if (material != null && materialIDSubID.length >= 2) {
+					try {
+						data = new MaterialData(material, Byte.parseByte(materialIDSubID[1]));
+					} catch (NumberFormatException e) {
+						player.sendMessage("Not Valid SubID!");
+					}
+				}
+			}
 			
 			if (material == null) {
 				player.sendMessage("Block not found!");
@@ -427,7 +441,7 @@ public class DRColorShooting implements ArenaLogic {
 			
 		}
 		
-		this.teamColorsBlocks.get(teamID).add(material);
+		this.teamColorsBlocks.get(teamID).add(new BlockInformation(material));
 		this.blocksPoints.put(material, points);
 	}
 		
@@ -624,7 +638,7 @@ public class DRColorShooting implements ArenaLogic {
 			return false;
 		}
 		this.board.registerNewTeam(name);
-		this.teamColorsBlocks.put(name, new ArrayList<Material>());
+		this.teamColorsBlocks.put(name, new ArrayList<BlockInformation>());
 		return true;
 	}
 	
