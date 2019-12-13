@@ -15,7 +15,7 @@ public class BlockInformation {
 	private Byte data;
 	private List<MetadataValue> metadata;
 	
-	public BlockInformation(@Nonnull Material material, Byte data, @Nonnull List<MetadataValue> metadata) {
+	public BlockInformation(@Nonnull Material material, Byte data, List<MetadataValue> metadata) {
 		this.material = material;
 		this.data = data;
 		this.metadata = metadata;
@@ -29,7 +29,7 @@ public class BlockInformation {
 		this(material, (Byte)null);
 	}
 	
-	public BlockInformation(@Nonnull Material material, @Nonnull List<MetadataValue> metadata) {
+	public BlockInformation(@Nonnull Material material, List<MetadataValue> metadata) {
 		this(material, null, metadata);
 	}
 	
@@ -61,7 +61,7 @@ public class BlockInformation {
 		if (this.material != block.getType() || this.data != block.getData()) {
 			return false;
 		}
-		//TODO change metadata to NBT data and check if it's equal.
+		//TODO change metadata to NBT data Of Lore and check if it's equal.
 		return true;
 	}
 	
