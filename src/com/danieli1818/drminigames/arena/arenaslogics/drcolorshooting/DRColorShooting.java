@@ -38,6 +38,7 @@ import org.bukkit.scoreboard.Team;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
 import com.danieli1818.drminigames.common.BlockInformation;
+import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.RegionUtils;
@@ -56,6 +57,9 @@ public class DRColorShooting implements ArenaLogic {
 	private Scoreboard board;
 	private NavigableMap<Integer, List<String>> rewardsCommands;
 	private SetCommands setCommands;
+	private long timeLeft;
+	private int timerTaskID;
+	private long timeForGame;
 	
 //	private class TeamColorBlock {
 //		
@@ -87,6 +91,9 @@ public class DRColorShooting implements ArenaLogic {
 		this.shouldStop = false;
 		this.numOfBlocksPerTeam = 10;
 		this.setCommands = new SetCommands(this);
+		this.timeForGame = 120;
+		this.timerTaskID = -1;
+		this.timeLeft = this.timeForGame;
 	}
 	
 	public DRColorShooting(Arena arena) {
@@ -100,6 +107,9 @@ public class DRColorShooting implements ArenaLogic {
 		this.shouldStop = false;
 		this.numOfBlocksPerTeam = 10;
 		this.setCommands = new SetCommands(this);
+		this.timeForGame = 120;
+		this.timerTaskID = -1;
+		this.timeLeft = this.timeForGame;
 	}
 
 	@Override
@@ -345,7 +355,7 @@ public class DRColorShooting implements ArenaLogic {
 				player.sendMessage("Points should be an integer!");
 				return;
 			}
-		} else if (command.equalsIgnoreCase("setprefix")) {
+		} else if (command.equalsIgnoreCase("set")) {
 			if (args.length < 2) {
 				this.setCommands.commands(player, null, new String[0]);
 				return;
@@ -670,9 +680,9 @@ public class DRColorShooting implements ArenaLogic {
 		return returnValue;
 	}
 	
-	public void setNumOfBlocksPerTeam(int num) throws NumberFormatException {
+	public void setNumOfBlocksPerTeam(int num) throws ArgumentOutOfBoundsException {
 		if (num <= 0) {
-			throw new NumberFormatException();
+			throw new ArgumentOutOfBoundsException();
 		}
 		this.numOfBlocksPerTeam = num;
 	}
@@ -690,6 +700,20 @@ public class DRColorShooting implements ArenaLogic {
 				
 			}
 		});
+	}
+	
+	public void setTimeForGame(int time) throws ArgumentOutOfBoundsException {
+		if (time <= 0) {
+			throw new ArgumentOutOfBoundsException();
+		}
+		this.timeForGame = time;
+	}
+	
+	private void stopTimer() {
+		if (this.timerTaskID != -1) {
+			Bukkit.getScheduler().cancelTask(this.timerTaskID);
+			this.timerTaskID = -1;
+		}
 	}
 
 }

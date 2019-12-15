@@ -39,6 +39,11 @@ public class SetCommands {
 					player.sendMessage("Invalid Syntax! Not Valid Number!");
 				}
 			}
+		} else if (subCommand.equalsIgnoreCase("timeForGame")) {
+			if (args.length != 2) {
+				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] set timeForGame [Time In Seconds]");
+			}
+			setTimeForGame(player, args[1]);
 		} else {
 			helpCommand(player, 1);
 		}
@@ -70,9 +75,17 @@ public class SetCommands {
 		try {
 			int num = Integer.parseInt(number);
 			this.arenaLogic.setNumOfBlocksPerTeam(num);
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			player.sendMessage("Not Valid Number! Number Should Be An Integer And Bigger Than 0!");
 		}
 	}
 	
+	private void setTimeForGame(Player player, String timeInSecs) {
+		try {
+			int num = Integer.parseInt(timeInSecs);
+			this.arenaLogic.setTimeForGame(num);
+		} catch (Exception e) {
+			player.sendMessage("Not Valid Time In Seconds! Time In Seconds Must Be A Number And Bigger Than 0!");
+		}
+	}
 }
