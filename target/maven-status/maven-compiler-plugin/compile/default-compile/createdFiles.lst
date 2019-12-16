@@ -1,16 +1,16 @@
 com\danieli1818\drminigames\resources\api\arena\events\JoinEvent.class
+com\danieli1818\drminigames\common\exceptions\ArgumentOutOfBoundsException.class
 com\danieli1818\drminigames\arena\BaseArena$1.class
 com\danieli1818\drminigames\resources\api\ArenaLogic.class
 com\danieli1818\drminigames\arena\BaseArena.class
 com\danieli1818\drminigames\arena\ArenasLogicsManager.class
 com\danieli1818\drminigames\listeners\MinigamesEventsListener.class
-META-INF\maven\com.danieli1818\drminigames\pom.xml
+com\danieli1818\drminigames\common\Timer.class
 com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShooting.class
 com\danieli1818\drminigames\utils\ArenasManager.class
 com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShooting$1.class
+com\danieli1818\drminigames\common\Timer$1.class
 com\danieli1818\drminigames\DRMinigames.class
-META-INF\MANIFEST.MF
-META-INF\maven\com.danieli1818\drminigames\pom.properties
 com\danieli1818\drminigames\resources\api\arena\events\Event.class
 com\danieli1818\drminigames\arena\kits\KitsManager.class
 com\danieli1818\drminigames\resources\api\DRMinigamePlugin.class
@@ -20,5 +20,6 @@ com\danieli1818\drminigames\utils\RegionUtils.class
 com\danieli1818\drminigames\utils\RandomWeightedList.class
 com\danieli1818\drminigames\utils\SavingAndLoadingUtils.class
 com\danieli1818\drminigames\arena\kits\Kit.class
+com\danieli1818\drminigames\common\BlockInformation.class
 com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\subcommands\SetCommands.class
 com\danieli1818\drminigames\arena\BaseArena$GameState.class

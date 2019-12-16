@@ -38,6 +38,7 @@ import org.bukkit.scoreboard.Team;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
 import com.danieli1818.drminigames.common.BlockInformation;
+import com.danieli1818.drminigames.common.Timer;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
@@ -57,9 +58,7 @@ public class DRColorShooting implements ArenaLogic {
 	private Scoreboard board;
 	private NavigableMap<Integer, List<String>> rewardsCommands;
 	private SetCommands setCommands;
-	private long timeLeft;
-	private int timerTaskID;
-	private long timeForGame;
+	private Timer timer;
 	
 //	private class TeamColorBlock {
 //		
@@ -91,9 +90,10 @@ public class DRColorShooting implements ArenaLogic {
 		this.shouldStop = false;
 		this.numOfBlocksPerTeam = 10;
 		this.setCommands = new SetCommands(this);
-		this.timeForGame = 120;
-		this.timerTaskID = -1;
-		this.timeLeft = this.timeForGame;
+		this.timer = new Timer();
+		this.timer.setTask((Long time) -> {
+			onTimeUpdated(time);
+		});
 	}
 	
 	public DRColorShooting(Arena arena) {
@@ -107,9 +107,10 @@ public class DRColorShooting implements ArenaLogic {
 		this.shouldStop = false;
 		this.numOfBlocksPerTeam = 10;
 		this.setCommands = new SetCommands(this);
-		this.timeForGame = 120;
-		this.timerTaskID = -1;
-		this.timeLeft = this.timeForGame;
+		this.timer = new Timer();
+		this.timer.setTask((Long time) -> {
+			onTimeUpdated(time);
+		});
 	}
 
 	@Override
@@ -118,25 +119,25 @@ public class DRColorShooting implements ArenaLogic {
 			this.shouldStop = false;
 			this.shouldStop.notifyAll();
 		}
+		this.timer.start();
 		int taskID = runSyncStartTasks();
 		if (taskID == -1) {
 			synchronized(this.shouldStop) {
 				this.shouldStop = true;
+				this.shouldStop.notifyAll();
 			}
 			System.err.println("Error Running Sync Tasks For Starting The Game!");
 			finish();
 		}
 		synchronized(this.shouldStop) {
-			if (!this.shouldStop) {
-				while (!this.shouldStop) {
-					try {
-						this.shouldStop.wait();
-					} catch (InterruptedException e) {
-						// e.printStackTrace();
-					}
+			while (!this.shouldStop) {
+				try {
+					this.shouldStop.wait();
+				} catch (InterruptedException e) {
+					// e.printStackTrace();
 				}
-
 			}
+
 		}
 		finish();
 		
@@ -319,6 +320,8 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void finish() {
 		
+		stopTimer();
+		
 		List<Team> teams = getWinningTeamsByOrder();
 		
 		int currentPlace = 1;
@@ -328,6 +331,8 @@ public class DRColorShooting implements ArenaLogic {
 			giveRewardsToTeam(team, currentPlace);
 			
 		}
+		
+		this.arena.stop();
 		
 		reset();
 		
@@ -702,17 +707,37 @@ public class DRColorShooting implements ArenaLogic {
 		});
 	}
 	
-	public void setTimeForGame(int time) throws ArgumentOutOfBoundsException {
+	public void setTimeForGame(long time) throws ArgumentOutOfBoundsException {
 		if (time <= 0) {
 			throw new ArgumentOutOfBoundsException();
 		}
-		this.timeForGame = time;
+		this.timer.setTime(time);
 	}
 	
 	private void stopTimer() {
-		if (this.timerTaskID != -1) {
-			Bukkit.getScheduler().cancelTask(this.timerTaskID);
-			this.timerTaskID = -1;
+		this.timer.stopTimer();
+	}
+	
+	private void onTimeUpdated(final long time) {
+		if (time <= 0) {
+			stop();
+		} else {
+			final long timeInSecs = time / 1000;
+			Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
+				for (Team team : getTeams()) {
+					for (OfflinePlayer player : team.getPlayers()) {
+						Player p = player.getPlayer();
+						if (p == null) {
+							continue;
+						}
+						if (time > Integer.MAX_VALUE) {
+							p.setTotalExperience(Integer.MAX_VALUE);
+						}
+						p.setTotalExperience((int)time);
+					}
+				}
+			});
+
 		}
 	}
 
