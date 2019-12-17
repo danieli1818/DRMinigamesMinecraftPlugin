@@ -16,7 +16,8 @@ public class Timer {
 	private Consumer<Long> consumer;
 	private long period;
 	private long delay;
-	private Boolean shouldStop;
+	private volatile Boolean shouldStop;
+	private final Object shouldStopLock = new Object();
 	private boolean hasStarted;
 	
 	public Timer(long time, long period, Consumer<Long> consumer, long delay) throws ArgumentOutOfBoundsException, NullArgumentException {
@@ -49,45 +50,59 @@ public class Timer {
 	
 	public void start() {
 		this.hasStarted = true;
-		synchronized(this.shouldStop) {
+		System.out.println("Timer Started!");
+		synchronized(this.shouldStopLock) {
 			this.shouldStop = false;
 		}
 		this.timerThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					synchronized(shouldStop) {
+					synchronized(shouldStopLock) {
 						if (shouldStop) {
 							return;
 						}
-						shouldStop.wait(delay);
+						if (delay != 0) {
+							shouldStopLock.wait(delay);
+						}
 					}
 					
 					timeLeft = timeInMiliSeconds;
 					
 					synchronized(consumer) {
+						Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
+							System.out.println("running consumer!");
+						});
 						consumer.accept(timeLeft);
 					}
 					while (timeLeft - period >= 0) {
-						synchronized(shouldStop) {
+						synchronized(shouldStopLock) {
 							if (shouldStop) {
 								return;
 							}
-							shouldStop.wait(period);
+							shouldStopLock.wait(period);
 						}
 						timeLeft -= period;
 						synchronized(consumer) {
+							Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
+								System.out.println("running consumer!");
+							});
 							consumer.accept(timeLeft);
 						}
 					}
-					synchronized(shouldStop) {
+					synchronized(shouldStopLock) {
 						if (shouldStop) {
 							return;
 						}
-						shouldStop.wait(timeLeft);
+						if (timeLeft != 0) {
+							shouldStopLock.wait(timeLeft);
+						}
 					}
 					timeLeft = 0;
 					synchronized(consumer) {
+						Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
+							System.out.println("running consumer!");
+						});
 						consumer.accept(timeLeft);
 					}
 				} catch (InterruptedException e) {
@@ -96,6 +111,7 @@ public class Timer {
 				hasStarted = false;
 			}
 		});
+		this.timerThread.start();
 	}
 	
 	public long getTimeLeft() {
@@ -103,7 +119,7 @@ public class Timer {
 	}
 	
 	public void stopTimer() {
-		synchronized(this.shouldStop) {
+		synchronized(this.shouldStopLock) {
 			this.shouldStop = true;
 		}
 		if (this.timerThread != null && this.timerThread.isAlive()) {

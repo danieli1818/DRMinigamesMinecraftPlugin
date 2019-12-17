@@ -53,6 +53,7 @@ public class DRColorShooting implements ArenaLogic {
 	private int numOfBlocksPerTeam;
 	private Thread thread;
 	private volatile Boolean shouldStop;
+	private final Object shouldStopLock = new Object();
 	private Random rnd;
 	private Map<String, String> teamColorsPrefixes;
 	private Scoreboard board;
@@ -115,24 +116,24 @@ public class DRColorShooting implements ArenaLogic {
 
 	@Override
 	public void start(Arena arena) {
-		synchronized(this.shouldStop) {
+		synchronized(this.shouldStopLock) {
 			this.shouldStop = false;
 			this.shouldStop.notifyAll();
 		}
 		this.timer.start();
 		int taskID = runSyncStartTasks();
 		if (taskID == -1) {
-			synchronized(this.shouldStop) {
+			synchronized(this.shouldStopLock) {
 				this.shouldStop = true;
 				this.shouldStop.notifyAll();
 			}
 			System.err.println("Error Running Sync Tasks For Starting The Game!");
 			finish();
 		}
-		synchronized(this.shouldStop) {
+		synchronized(this.shouldStopLock) {
 			while (!this.shouldStop) {
 				try {
-					this.shouldStop.wait();
+					this.shouldStopLock.wait();
 				} catch (InterruptedException e) {
 					// e.printStackTrace();
 				}
@@ -280,27 +281,27 @@ public class DRColorShooting implements ArenaLogic {
 
 		for (Entry<String, List<Location>> locations : locationsPerRegion.entrySet()) {
 			for (Location location : locations.getValue()) {
-				location.getBlock().setType(getRandomMaterialOfTeam(locations.getKey()));
+				getRandomBlockInformationOfTeam(locations.getKey()).spawnBlockInLocation(location);
 			}
 		}
 
 	}
 	
-	private Material getRandomMaterialOfTeam(String team) {
-		List<BlockInformation> materials = this.teamColorsBlocks.get(team);
+	private BlockInformation getRandomBlockInformationOfTeam(String team) {
+		List<BlockInformation> blockInformations = this.teamColorsBlocks.get(team);
 		
-		if (materials == null) {
+		if (blockInformations == null) {
 			return null;
 		}
 		
-		int length = materials.size();
+		int length = blockInformations.size();
 		
 		int randomIndex = rnd.nextInt(length);
-		return materials.get(randomIndex).getMaterial();
+		return blockInformations.get(randomIndex);
 	}
 	
 	public boolean stop() {
-		synchronized(this.shouldStop) {
+		synchronized(this.shouldStopLock) {
 			this.shouldStop = true;
 			this.shouldStop.notifyAll();
 		}
@@ -319,6 +320,8 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void finish() {
+		
+		System.out.println("Finish Function Has Been Called!");
 		
 		stopTimer();
 		
@@ -472,9 +475,9 @@ public class DRColorShooting implements ArenaLogic {
 		
 	private boolean spawnRandomBlock(String team) {
 		
-		Material randomMaterial = getRandomMaterialOfTeam(team);
+		BlockInformation randomBlockInformation = getRandomBlockInformationOfTeam(team);
 		
-		if (randomMaterial == null) {
+		if (randomBlockInformation == null) {
 			return false;
 		}
 		
@@ -490,7 +493,7 @@ public class DRColorShooting implements ArenaLogic {
 			return false;
 		}
 		
-		locations.get(0).getBlock().setType(randomMaterial);
+		randomBlockInformation.spawnBlockInLocation(locations.get(0));
 		
 		return true;
 		
@@ -719,6 +722,7 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void onTimeUpdated(final long time) {
+		System.out.println("onTimeUpdated Function has been called with time: " + time);
 		if (time <= 0) {
 			stop();
 		} else {
