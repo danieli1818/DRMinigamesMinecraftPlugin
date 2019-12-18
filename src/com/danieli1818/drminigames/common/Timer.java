@@ -75,7 +75,7 @@ public class Timer {
 						});
 						consumer.accept(timeLeft);
 					}
-					while (timeLeft - period >= 0) {
+					while (timeLeft - period > 0) {
 						synchronized(shouldStopLock) {
 							if (shouldStop) {
 								return;
@@ -121,6 +121,7 @@ public class Timer {
 	public void stopTimer() {
 		synchronized(this.shouldStopLock) {
 			this.shouldStop = true;
+			this.shouldStopLock.notifyAll();
 		}
 		if (this.timerThread != null && this.timerThread.isAlive()) {
 			this.timerThread.interrupt();

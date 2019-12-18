@@ -238,8 +238,8 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public void kickAllPlayers() {
-		for (UUID id : this.players) {
-			kickPlayer(id);
+		while (!this.players.isEmpty()) {
+			kickPlayer(this.players.get(0));
 		}
 	}
 	
@@ -601,11 +601,12 @@ public class BaseArena extends Observable implements Arena {
 	
 	public boolean stop() {
 		cancelTimer();
+		setUnavailable();
 		return this.al.stop();
 	}
 	
 	public void forceStop() {
-		cancelTimer();
+		stop();
 		this.al.forceStop();
 	}
 	

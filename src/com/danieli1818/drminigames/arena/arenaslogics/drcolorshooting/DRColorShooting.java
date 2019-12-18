@@ -118,14 +118,14 @@ public class DRColorShooting implements ArenaLogic {
 	public void start(Arena arena) {
 		synchronized(this.shouldStopLock) {
 			this.shouldStop = false;
-			this.shouldStop.notifyAll();
+			this.shouldStopLock.notifyAll();
 		}
 		this.timer.start();
 		int taskID = runSyncStartTasks();
 		if (taskID == -1) {
 			synchronized(this.shouldStopLock) {
 				this.shouldStop = true;
-				this.shouldStop.notifyAll();
+				this.shouldStopLock.notifyAll();
 			}
 			System.err.println("Error Running Sync Tasks For Starting The Game!");
 			finish();
@@ -162,6 +162,7 @@ public class DRColorShooting implements ArenaLogic {
 	
 	@Override
 	public void update(Observable o, Object arg) {
+		System.out.println("Update Function Has Been Called!");
 		if (!this.arena.isRunning()) {
 			return;
 		}
@@ -171,6 +172,7 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void onEvent(Event e) {
+		System.out.println("OnEvent Function Has Been Called!");
 		if (e instanceof ProjectileHitEvent) {
 			onProjectileHitEvent((ProjectileHitEvent)e);
 		}
@@ -178,6 +180,7 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void onProjectileHitEvent(ProjectileHitEvent event) {
 		Block block = event.getHitBlock();
+		System.out.println("BlockPoints Contains Key Block Value Is: " + this.blocksPoints.containsKey(new BlockInformation(block)));
 		if (block == null || !this.blocksPoints.containsKey(new BlockInformation(block))) {
 			return;
 		}
@@ -303,7 +306,7 @@ public class DRColorShooting implements ArenaLogic {
 	public boolean stop() {
 		synchronized(this.shouldStopLock) {
 			this.shouldStop = true;
-			this.shouldStop.notifyAll();
+			this.shouldStopLock.notifyAll();
 		}
 		return true;
 	}
@@ -335,7 +338,7 @@ public class DRColorShooting implements ArenaLogic {
 			
 		}
 		
-		this.arena.stop();
+		this.arena.finishGame();
 		
 		reset();
 		

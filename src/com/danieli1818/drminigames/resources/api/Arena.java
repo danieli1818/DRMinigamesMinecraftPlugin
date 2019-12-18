@@ -82,4 +82,6 @@ public interface Arena {
 	
 	public boolean isRunning();
 	
+	public void finishGame();
+	
 }
