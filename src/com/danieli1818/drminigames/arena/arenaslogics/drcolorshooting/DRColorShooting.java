@@ -38,7 +38,7 @@ import org.bukkit.scoreboard.Team;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
 import com.danieli1818.drminigames.common.BlockInformation;
-import com.danieli1818.drminigames.common.Timer;
+import com.danieli1818.drminigames.common.configurationserializables.collections.maps.Timer;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
@@ -225,18 +225,6 @@ public class DRColorShooting implements ArenaLogic {
 	@Override
 	public String getID() {
 		return "DRColorShooting";
-	}
-
-	@Override
-	public void loadArenaLogicFromMap(Map<String, String> map) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Map<String, String> getArenaLogicMap() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 	
 	private void setTeamsToPlayers() {
@@ -746,6 +734,26 @@ public class DRColorShooting implements ArenaLogic {
 			});
 
 		}
+	}
+
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("id", arena.getID());
+		map.put("teamColorsBlocks", teamColorsBlocks);
+		private Map<String, List<BlockInformation>> teamColorsBlocks;
+		private Map<BlockInformation, Integer> blocksPoints;
+		private int numOfBlocksPerTeam;
+		private Thread thread;
+		private volatile Boolean shouldStop;
+		private final Object shouldStopLock = new Object();
+		private Random rnd;
+		private Map<String, String> teamColorsPrefixes;
+		private Scoreboard board;
+		private NavigableMap<Integer, List<String>> rewardsCommands;
+		private SetCommands setCommands;
+		private Timer timer;
+		return null;
 	}
 
 }

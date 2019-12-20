@@ -4,9 +4,10 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 
-public interface ArenaLogic extends Observer {
+public interface ArenaLogic extends Observer, ConfigurationSerializable {
 
 	public void start(Arena arena);
 	
@@ -15,10 +16,6 @@ public interface ArenaLogic extends Observer {
 	public boolean canBeAvailable(Arena arena);
 	
 	public String getID();
-	
-	public void loadArenaLogicFromMap(Map<String, String> map);
-	
-	public Map<String, String> getArenaLogicMap();
 	
 	@Override
 	default void update(Observable o, Object arg) {

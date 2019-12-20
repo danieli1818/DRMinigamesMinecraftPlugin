@@ -1,5 +1,6 @@
 package com.danieli1818.drminigames.arena;
 
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,8 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -27,6 +26,9 @@ import org.bukkit.util.BlockVector;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.danieli1818.drminigames.arena.kits.KitsManager;
+import com.danieli1818.drminigames.common.configurationserializables.collections.maps.Timer;
+import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
+import com.danieli1818.drminigames.common.exceptions.InvalidConfigurationDataException;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.resources.api.arena.events.JoinEvent;
@@ -57,18 +59,16 @@ public class BaseArena extends Observable implements Arena {
 	private int maxNumPlayers;
 	
 	private ArenaLogic al;
-	
-	private long countdown;
-	
+		
 	private List<Kit> kits;
 	
 	private Map<String, Region> regions;
 	
 	private Scoreboard board;
 	
-	private long timeLeftForCountdown;
+	private Timer countdownTimer;
 	
-	private int countdownTaskID;
+	
 	
 	private enum GameState {
 		UNAVAILABLE,
@@ -87,12 +87,13 @@ public class BaseArena extends Observable implements Arena {
 		this.state = GameState.UNAVAILABLE;
 		this.limits = null;
 		this.spawnLocation = new HashMap<String, Location>();
-		this.countdown = 10000;
 		this.kits = Collections.synchronizedList(new ArrayList<Kit>());
 		this.regions = new HashMap<String, Region>();
 		initializeScoreboard();
-		this.timeLeftForCountdown = this.countdown;
-		this.countdownTaskID = -1;
+		this.countdownTimer = new Timer();
+		this.countdownTimer.setTask((Long time) -> {
+			onTimeUpdated(time);
+		});
 		reset();
 	}
 	
@@ -116,24 +117,8 @@ public class BaseArena extends Observable implements Arena {
 		if (this.state != GameState.COUNTDOWN && this.players.size() >= this.minNumPlayers) {
 			this.state = GameState.COUNTDOWN;
 			Arena thisArena = this;
-			this.timeLeftForCountdown = this.countdown;
-			updateScoreboard();
-			startTimer(this.timeLeftForCountdown % 1000, new Runnable() {
-				
-				@Override
-				public void run() {
-					timeLeftForCountdown -= 1000;
-					if (timeLeftForCountdown <= 0) {
-						state = GameState.RUNNING;
-						cancelTimer();
-						al.start(thisArena);
-					} else {
-						updateScoreboard();
-					}
-
-					
-				}
-			}, 1000);
+			updateScoreboard(null);
+			this.countdownTimer.start();
 		}
 		return true;
 	}
@@ -148,6 +133,7 @@ public class BaseArena extends Observable implements Arena {
 		} else {
 			if (this.state == GameState.COUNTDOWN && this.players.size() < this.minNumPlayers) {
 				this.state = GameState.WAITING;
+				this.countdownTimer.stopTimer();
 			}
 		}
 		Player p = Bukkit.getPlayer(id);
@@ -160,7 +146,7 @@ public class BaseArena extends Observable implements Arena {
 		this.players.clear();
 		if (this.state != GameState.UNAVAILABLE) {
 			if (this.state == GameState.COUNTDOWN) {
-				cancelTimer();
+				this.countdownTimer.stopTimer();
 			}
 			this.state = GameState.WAITING;
 		}
@@ -180,15 +166,12 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean setUnavailable() {
-		if (this.countdownTaskID != -1) {
-			cancelTimer();
-		}
 		if (this.state == GameState.RUNNING) {
 			finishGame();
 		} else {
 			if (this.state == GameState.WAITING || this.state == GameState.COUNTDOWN) {
 				if (this.state == GameState.COUNTDOWN) {
-					cancelTimer();
+					this.countdownTimer.stopTimer();
 				}
 				this.state = GameState.UNAVAILABLE;
 				kickAllPlayers();
@@ -242,21 +225,7 @@ public class BaseArena extends Observable implements Arena {
 			kickPlayer(this.players.get(0));
 		}
 	}
-	
-	private void startTimer(long delay, Runnable runnable, long period) {
-		delay = Math.round(delay / 1000.0);
-		period = Math.round(delay / 1000.0);
-		this.countdownTaskID = Bukkit.getScheduler().scheduleAsyncRepeatingTask(DRMinigames.getPlugin(DRMinigames.class), runnable, delay * 20, period * 20);
-	}
-	
-	private void cancelTimer() {
-		// cancel timer
-		if (this.countdownTaskID != -1) {
-			Bukkit.getScheduler().cancelTask(this.countdownTaskID);
-			this.countdownTaskID = -1;
-		}
-	}
-	
+		
 	public void setRegion(Region r) {
 		this.limits = r;
 		this.spawnLocation.clear();
@@ -311,11 +280,12 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean setCountdown(long countdown) {
-		if (countdown >= 0) {
-			this.countdown = countdown;
+		try {
+			this.countdownTimer.setTime(countdown);
 			return true;
+		} catch (ArgumentOutOfBoundsException e) {
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -360,7 +330,7 @@ public class BaseArena extends Observable implements Arena {
 
 	@Override
 	public long getCountdown() {
-		return this.countdown;
+		return this.countdownTimer.getTime();
 	}
 
 	@Override
@@ -380,73 +350,6 @@ public class BaseArena extends Observable implements Arena {
 		this.kits.clear();
 		
 	}
-
-	@Override
-	public Map<String, String> getArenaMap() {
-				
-		Map<String, String> arenaMap = new HashMap<String, String>();
-		
-		arenaMap.put("spawnLocation", locationMapToString(this.spawnLocation));
-		
-		arenaMap.put("waitingLocation", locationToString(this.waitingLocation));
-		
-		arenaMap.put("leaveLocation", locationToString(this.leaveLocation));
-		
-		arenaMap.put("limits", regionToString(this.limits));
-
-		arenaMap.put("minNumOfPlayers", String.valueOf(this.minNumPlayers));
-		
-		arenaMap.put("maxNumOfPlayers", String.valueOf(this.maxNumPlayers));
-		
-		if (this.al != null) {
-			arenaMap.put("arenaLogicID", this.al.getID());
-		}
-				
-		arenaMap.put("countdown", String.valueOf(this.countdown));
-		
-		arenaMap.put("kits", kitListToString(this.kits));
-		
-		return arenaMap;
-	}
-
-	@Override
-	public void loadArenaFromMap(Map<String, String> arenaMap) {
-		
-		this.spawnLocation = locationsMapFromString(arenaMap.get("spawnLocation"));
-		
-		this.waitingLocation = getLocationFromString(arenaMap.get("waitingLocation"));
-		
-		this.leaveLocation = getLocationFromString(arenaMap.get("leaveLocation"));
-		
-		this.limits = regionFromString(arenaMap.get("limits"));
-		
-		try {
-			this.minNumPlayers = Integer.parseInt(arenaMap.get("minNumOfPlayers"));
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-			this.minNumPlayers = 4;
-		}
-		
-		try {
-			this.maxNumPlayers = Integer.parseInt(arenaMap.get("maxNumOfPlayers"));
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-			this.maxNumPlayers = 40;
-		}
-		
-		this.al = ArenasLogicsManager.loadArenaLogic(this, arenaMap.get("arenaLogicID"));
-		
-		try {
-			this.countdown = Integer.parseInt(arenaMap.get("countdown"));
-		} catch(NumberFormatException e) {
-			e.printStackTrace();
-			this.countdown = 10;
-		}
-		
-		this.kits = kitListFromString(arenaMap.get("kits"));
-		
-		
-	}
 	
 	private String locationMapToString(Map<String, Location> locationsMap) {
 		if (locationsMap == null) {
@@ -462,7 +365,7 @@ public class BaseArena extends Observable implements Arena {
 		return location.getWorld().getName() + ":" + location.getX() + ":" + location.getY() + ":" + location.getZ();
 	}
 	
-	private Location getLocationFromString(String locationString) {
+	public static Location getLocationFromString(String locationString) {
 		if (locationString == null || locationString.equals("")) {
 			return null;
 		}
@@ -479,7 +382,7 @@ public class BaseArena extends Observable implements Arena {
 		
 	}
 	
-	private Map<String, Location> locationsMapFromString(String locationsMapString) {
+	public static Map<String, Location> locationsMapFromString(String locationsMapString) {
 		if (locationsMapString == null) {
 			return new HashMap<String, Location>();
 		}
@@ -502,7 +405,7 @@ public class BaseArena extends Observable implements Arena {
 		return region.getWorld().getName() + ":" + region.getMinimumPoint().toString() + ":" + region.getMaximumPoint().toString();
 	}
 	
-	private Region regionFromString(String regionString) {
+	public static Region regionFromString(String regionString) {
 		if (regionString == null || regionString.equals("")) {
 			return null;
 		}
@@ -529,7 +432,7 @@ public class BaseArena extends Observable implements Arena {
 		return new CuboidRegion(worldeditWorld, v1, v2);
 	}
 	
-	private Vector getVectorFromString(String vectorString) {
+	public static Vector getVectorFromString(String vectorString) {
 		if (vectorString == null) {
 			return null;
 		}
@@ -556,7 +459,7 @@ public class BaseArena extends Observable implements Arena {
 		return kitList.stream().map(kit -> kit.getID()).collect(Collectors.joining(", "));
 	}
 	
-	private List<Kit> kitListFromString(String kitListString) {
+	private static List<Kit> kitListFromString(String kitListString) {
 		if (kitListString == null || kitListString.equals("")) {
 			return new ArrayList<Kit>();
 		}
@@ -600,7 +503,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean stop() {
-		cancelTimer();
+		this.countdownTimer.stopTimer();
 		setUnavailable();
 		return this.al.stop();
 	}
@@ -638,7 +541,7 @@ public class BaseArena extends Observable implements Arena {
 		}
 	}
 	
-	private String getStatusString() {
+	private String getStatusString(Long time) {
 		String result;
 		if (this.al != null) {
 			result = this.al.getID();
@@ -649,15 +552,127 @@ public class BaseArena extends Observable implements Arena {
 		if (this.state != GameState.COUNTDOWN) {
 			result += getStateString();
 		} else {
-			result += this.timeLeftForCountdown;
+			if (time != null) {
+				result += time;
+			} else {
+				result += "NaN";
+			}
 		}
 		
 		return result;
 	}
 	
-	private void updateScoreboard() {
+	private void updateScoreboard(Long time) {
 		Objective o = this.board.getObjective("status");
-		o.setDisplayName(getStatusString());
+		o.setDisplayName(getStatusString(time));
 	}
 
+	private void onTimeUpdated(long time) {
+		if (time <= 0) {
+			this.state = GameState.RUNNING;
+			al.start(this);
+		} else {
+			updateScoreboard(time);
+		}
+	}
+
+	@Override
+	public Map<String, Object> serialize() {
+		
+		Map<String, Object> arenaMap = new HashMap<String, Object>();
+		
+		arenaMap.put("id", this.id);
+		
+		arenaMap.put("spawnLocation", locationMapToString(this.spawnLocation));
+		
+		arenaMap.put("waitingLocation", locationToString(this.waitingLocation));
+		
+		arenaMap.put("leaveLocation", locationToString(this.leaveLocation));
+		
+		arenaMap.put("limits", regionToString(this.limits));
+		
+		arenaMap.put("minNumOfPlayers", this.minNumPlayers);
+		
+		arenaMap.put("maxNumOfPlayers", this.maxNumPlayers);
+		
+		try {
+			ArenasLogicsManager.saveArenaLogic(this.al, this.getID());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+				
+		arenaMap.put("countdown", this.countdownTimer.serialize());
+		
+		arenaMap.put("kits", kitListToString(this.kits));
+		
+		return arenaMap;
+	
+	}
+	
+	public static BaseArena deserialize(Map<String, Object> map) {
+		
+		if (!map.containsKey("id")) {
+			
+			throw new InvalidConfigurationDataException("ID Key Value Not Found!");
+			
+		}
+		
+		BaseArena arena = new BaseArena((String)map.get("id"));
+		
+		if (map.containsKey("spawnLocation")) {
+			arena.spawnLocation = locationsMapFromString((String)map.get("spawnLocation"));
+		}
+		
+		if (map.containsKey("waitingLocation")) {
+			arena.waitingLocation = getLocationFromString((String)map.get("waitingLocation"));
+		}
+		
+		if (map.containsKey("leaveLocation")) {
+			arena.leaveLocation = getLocationFromString((String)map.get("leaveLocation"));
+		}
+		
+		if (map.containsKey("limits")) {
+			arena.limits = regionFromString((String)map.get("limits"));
+		}
+		
+		if (map.containsKey("minNumOfPlayers")) {
+			try {
+				arena.minNumPlayers = Integer.parseInt((String)map.get("minNumOfPlayers"));
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+				arena.minNumPlayers = 4;
+			}
+		}
+		
+		if (map.containsKey("maxNumOfPlayers")) {
+			try {
+				arena.maxNumPlayers = Integer.parseInt((String)map.get("maxNumOfPlayers"));
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+				arena.maxNumPlayers = 40;
+			}
+		}
+		
+		if (map.containsKey("arenaLogicID")) {
+			arena.al = ArenasLogicsManager.loadArenaLogic(arena, arena.getID());
+		}
+		
+		if (map.containsKey("countdown")) {
+			try {
+				arena.countdownTimer = (Timer)map.get("countdown");
+				arena.countdownTimer.setTask((Long time) -> {
+					arena.onTimeUpdated(time);
+				});
+			} catch(NumberFormatException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if (map.containsKey("kits")) {
+			arena.kits = kitListFromString((String)map.get("kits"));
+		}
+		
+		return arena;
+	}
+	
 }

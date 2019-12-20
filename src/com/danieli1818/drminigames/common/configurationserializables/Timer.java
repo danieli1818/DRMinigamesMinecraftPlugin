@@ -1,14 +1,17 @@
-package com.danieli1818.drminigames.common;
+package com.danieli1818.drminigames.common.configurationserializables;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang.NullArgumentException;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 
-public class Timer {
+public class Timer implements ConfigurationSerializable {
 
 	private long timeInMiliSeconds;
 	private long timeLeft;
@@ -160,6 +163,33 @@ public class Timer {
 		}
 		stopTimer();
 		this.delay = delay;
+	}
+	
+	public long getTime() {
+		return this.timeInMiliSeconds;
+	}
+
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("time", timeInMiliSeconds);
+		map.put("period", period);
+		map.put("delay", delay);
+		return map;
+	}
+	
+	public static Timer deserialize(Map<String, Object> map) {
+		Timer timer = new Timer();
+		if (map.containsKey("time")) {
+			timer.timeInMiliSeconds = Long.parseLong((String)map.get("time"));
+		}
+		if (map.containsKey("period")) {
+			timer.period = Long.parseLong((String)map.get("period"));
+		}
+		if (map.containsKey("delay")) {
+			timer.delay = Long.parseLong((String)map.get("delay"));
+		}
+		return timer;
 	}
 	
 }

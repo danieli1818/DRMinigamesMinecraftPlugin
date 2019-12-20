@@ -6,13 +6,14 @@ import java.util.Timer;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.sk89q.worldedit.regions.Region;
 
-public interface Arena {
+public interface Arena extends ConfigurationSerializable {
 
 	public List<UUID> getPlayers();
 	
@@ -37,10 +38,6 @@ public interface Arena {
 	public void removeKit(Kit kit);
 	
 	public void removeAllKits();
-	
-	public Map<String, String> getArenaMap();
-	
-	public void loadArenaFromMap(Map<String, String> arenaMap);
 	
 	public boolean contains(UUID id);
 

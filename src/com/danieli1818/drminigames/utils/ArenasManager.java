@@ -137,8 +137,7 @@ public class ArenasManager {
 		if (!this.arenasConfig.contains(id)) {
 			return new BaseArena(id);
 		}
-		Arena arena = new BaseArena(id);
-		arena.loadArenaFromMap((Map<String, String>) arenasConfig.get(id));
+		Arena arena = (Arena) arenasConfig.get(id);
 		arena.setType(ArenasLogicsManager.loadArenaLogic(arena, id));
 		return arena;
 	}
@@ -146,8 +145,7 @@ public class ArenasManager {
 	public void saveArenas() throws IOException {
 		for (AbstractMap.Entry<String, Arena> entry : this.arenas.entrySet()) {
 			try {
-				SavingAndLoadingUtils.saveMap(entry.getValue().getArenaMap(), arenasConfig, null, entry.getKey());
-				ArenasLogicsManager.saveArenaLogic(entry.getValue().getAL(), entry.getKey());
+				SavingAndLoadingUtils.saveSerializable(entry.getValue(), arenasConfig, null, entry.getKey());
 			} catch (IOException exception) {
 				exception.printStackTrace();
 			}
@@ -159,7 +157,7 @@ public class ArenasManager {
 		for (String id : ids) {
 			if (this.doesExist(id)) {
 				try {
-					SavingAndLoadingUtils.saveMap(this.getArena(id).getArenaMap(), arenasConfig, null, id);
+					SavingAndLoadingUtils.saveSerializable(this.getArena(id), arenasConfig, null, id);
 				} catch (IOException exception) {
 					exception.printStackTrace();
 				}

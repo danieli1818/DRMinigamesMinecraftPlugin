@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 public class SavingAndLoadingUtils {
 	
@@ -33,7 +34,7 @@ public class SavingAndLoadingUtils {
 		return map;
 	}
 	
-	public static void saveMap(Map<String, String> map, FileConfiguration conf, File file, String path) throws IOException {
+	public static void saveMap(Map<String, Object> map, FileConfiguration conf, File file, String path) throws IOException {
 		conf.createSection(path, map);
 		if (file != null) {
 			conf.save(file);
@@ -48,6 +49,13 @@ public class SavingAndLoadingUtils {
 		return confSec.getValues(false).entrySet().stream()
 				.map(entry -> new AbstractMap.SimpleEntry<String, String>(entry.getKey(), (String)entry.getValue()))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	}
+	
+	public static void saveSerializable(ConfigurationSerializable confSerializable, FileConfiguration conf, File file, String path) throws IOException {
+		conf.set(path, confSerializable);
+		if (file != null) {
+			conf.save(file);
+		}
 	}
 	
 }
