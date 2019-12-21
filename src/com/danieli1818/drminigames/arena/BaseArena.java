@@ -26,7 +26,7 @@ import org.bukkit.util.BlockVector;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.danieli1818.drminigames.arena.kits.KitsManager;
-import com.danieli1818.drminigames.common.configurationserializables.collections.maps.Timer;
+import com.danieli1818.drminigames.common.configurationserializables.Timer;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.common.exceptions.InvalidConfigurationDataException;
 import com.danieli1818.drminigames.resources.api.Arena;
@@ -583,11 +583,11 @@ public class BaseArena extends Observable implements Arena {
 		
 		arenaMap.put("id", this.id);
 		
-		arenaMap.put("spawnLocation", locationMapToString(this.spawnLocation));
+		arenaMap.put("spawnLocation", this.spawnLocation);
 		
-		arenaMap.put("waitingLocation", locationToString(this.waitingLocation));
+		arenaMap.put("waitingLocation", this.waitingLocation);
 		
-		arenaMap.put("leaveLocation", locationToString(this.leaveLocation));
+		arenaMap.put("leaveLocation", this.leaveLocation);
 		
 		arenaMap.put("limits", regionToString(this.limits));
 		
@@ -601,7 +601,7 @@ public class BaseArena extends Observable implements Arena {
 			e.printStackTrace();
 		}
 				
-		arenaMap.put("countdown", this.countdownTimer.serialize());
+		arenaMap.put("countdown", this.countdownTimer);
 		
 		arenaMap.put("kits", kitListToString(this.kits));
 		

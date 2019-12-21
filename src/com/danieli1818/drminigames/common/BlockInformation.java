@@ -1,17 +1,20 @@
 package com.danieli1818.drminigames.common;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
 
-public class BlockInformation {
+public class BlockInformation implements ConfigurationSerializable {
 
 	private Material material;
 	private byte data;
@@ -31,6 +34,11 @@ public class BlockInformation {
 	
 	public BlockInformation(@Nonnull Block block) {
 		this(block.getType(), block.getData());
+	}
+	
+	private BlockInformation() {
+		this.material = null;
+		this.data = 0;
 	}
 	
 	public Material getMaterial() {
@@ -80,6 +88,34 @@ public class BlockInformation {
 	public int hashCode() {
 		String value = String.valueOf(this.material.getId()) + "-" + String.valueOf(this.data);
 		return value.hashCode();
+	}
+
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("material", this.material.getId());
+		map.put("data", this.data);
+		return map;
+	}
+	
+	public static BlockInformation deserialize(Map<String, Object> map) {
+		BlockInformation blockInformation = new BlockInformation();
+		if (map.containsKey("material")) {
+			try {
+				blockInformation.material = Material.getMaterial(Integer.parseInt((String)map.get("material")));
+				if (!blockInformation.material.isBlock()) {
+					return null;
+				}
+				if (map.containsKey("data")) {
+					blockInformation.data = (byte)map.get("data");
+				}
+				return blockInformation;
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		} else {
+			return null;
+		}
 	}
 	
 }

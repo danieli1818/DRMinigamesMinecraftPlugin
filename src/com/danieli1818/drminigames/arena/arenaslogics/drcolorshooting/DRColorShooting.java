@@ -1,5 +1,6 @@
 package com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +24,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -38,10 +40,11 @@ import org.bukkit.scoreboard.Team;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
 import com.danieli1818.drminigames.common.BlockInformation;
-import com.danieli1818.drminigames.common.configurationserializables.collections.maps.Timer;
+import com.danieli1818.drminigames.common.configurationserializables.Timer;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
+import com.danieli1818.drminigames.utils.ArenasManager;
 import com.danieli1818.drminigames.utils.RegionUtils;
 import com.sk89q.worldedit.regions.Region;
 
@@ -736,24 +739,80 @@ public class DRColorShooting implements ArenaLogic {
 		}
 	}
 
-	@Override
-	public Map<String, Object> serialize() {
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("id", arena.getID());
-		map.put("teamColorsBlocks", teamColorsBlocks);
-		private Map<String, List<BlockInformation>> teamColorsBlocks;
-		private Map<BlockInformation, Integer> blocksPoints;
-		private int numOfBlocksPerTeam;
-		private Thread thread;
-		private volatile Boolean shouldStop;
-		private final Object shouldStopLock = new Object();
-		private Random rnd;
-		private Map<String, String> teamColorsPrefixes;
-		private Scoreboard board;
-		private NavigableMap<Integer, List<String>> rewardsCommands;
-		private SetCommands setCommands;
-		private Timer timer;
-		return null;
+//	@Override
+//	public Map<String, Object> serialize() {
+//		Map<String, Object> map = new HashMap<String, Object>();
+//		map.put("id", arena.getID());
+//		map.put("teamBlocks", combineColorTeamsBlocksMapAndPointsMap());
+//		map.put("numOfBlocksPerTeam", numOfBlocksPerTeam);
+//		map.put("teamColorsPrefixes", teamColorsPrefixes);
+//		map.put("rewardsCommands", rewardsCommands.entrySet().stream().map((Entry<Integer, List<String>> entry) -> {
+//			return new AbstractMap.SimpleEntry<String, List<String>>(entry.getKey().toString(), entry.getValue());
+//		}).collect(Collectors.toMap((Entry::getKey), Entry::getValue)));
+//		return map;
+//	}
+//	
+//	public static DRColorShooting deserialize(Map<String, Object> map) {
+//		if (!map.containsKey("id")) {
+//			return null;
+//		}
+//		DRColorShooting arenaLogic = new DRColorShooting(ArenasManager.getInstance().getArena((String)map.get("id")));
+//		if (arenaLogic.arena == null) {
+//			return null;
+//		}
+//		return null;
+//	}
+	
+	private static class BlockPointsInformation implements ConfigurationSerializable {
+
+		private BlockInformation blockInfo;
+		private int points;
+		
+		public BlockPointsInformation(BlockInformation blockInfo, int points) {
+			this.blockInfo = blockInfo;
+			this.points = points;
+		}
+		
+		@Override
+		public Map<String, Object> serialize() {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("blockInfo", this.blockInfo);
+			map.put("points", this.points);
+			return map;
+		}
+		
+		public static BlockPointsInformation deserializable(Map<String, Object> map) {
+			if (!map.containsKey("blockInfo") || !map.containsKey("points")) {
+				return null;
+			}
+			Object o = map.get("blockInfo");
+			if (o == null || !(o instanceof BlockInformation)) {
+				return null;
+			}
+			BlockInformation blockInfo = (BlockInformation)o;
+			try {
+				int points = Integer.parseInt((String)map.get("points"));
+				return new BlockPointsInformation(blockInfo, points);
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		}
+		
+	}
+	
+	private Map<String, List<BlockPointsInformation>> combineColorTeamsBlocksMapAndPointsMap() {
+		Map<String, List<BlockPointsInformation>> map = new HashMap<String, List<BlockPointsInformation>>();
+		for (Entry<String, List<BlockInformation>> entry : this.teamColorsBlocks.entrySet()) {
+			List<BlockPointsInformation> bpisTeamList = new ArrayList<BlockPointsInformation>();
+			for (BlockInformation blockInfo : entry.getValue()) {
+				if (this.blocksPoints.get(blockInfo) == null) {
+					continue;
+				}
+				bpisTeamList.add(new BlockPointsInformation(blockInfo, this.blocksPoints.get(blockInfo)));
+			}
+			map.put(entry.getKey(), bpisTeamList);
+		}
+		return map;
 	}
 
 }
