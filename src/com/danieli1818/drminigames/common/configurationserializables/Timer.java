@@ -181,13 +181,13 @@ public class Timer implements ConfigurationSerializable {
 	public static Timer deserialize(Map<String, Object> map) {
 		Timer timer = new Timer();
 		if (map.containsKey("time")) {
-			timer.timeInMiliSeconds = Long.parseLong((String)map.get("time"));
+			timer.timeInMiliSeconds = (Integer)map.get("time");
 		}
 		if (map.containsKey("period")) {
-			timer.period = Long.parseLong((String)map.get("period"));
+			timer.period = (Integer)map.get("period");
 		}
 		if (map.containsKey("delay")) {
-			timer.delay = Long.parseLong((String)map.get("delay"));
+			timer.delay = (Integer)map.get("delay");
 		}
 		return timer;
 	}

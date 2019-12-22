@@ -102,7 +102,7 @@ public class BlockInformation implements ConfigurationSerializable {
 		BlockInformation blockInformation = new BlockInformation();
 		if (map.containsKey("material")) {
 			try {
-				blockInformation.material = Material.getMaterial(Integer.parseInt((String)map.get("material")));
+				blockInformation.material = Material.getMaterial((int) map.get("material"));
 				if (!blockInformation.material.isBlock()) {
 					return null;
 				}

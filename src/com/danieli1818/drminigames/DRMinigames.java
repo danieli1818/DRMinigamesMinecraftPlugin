@@ -14,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.danieli1818.drminigames.commands.ArenaCommands;
 import com.danieli1818.drminigames.listeners.MinigamesEventsListener;
 import com.danieli1818.drminigames.utils.ArenasManager;
+import com.danieli1818.drminigames.utils.SavingAndLoadingUtils;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public final class DRMinigames extends JavaPlugin {
@@ -31,6 +32,8 @@ public final class DRMinigames extends JavaPlugin {
 			System.err.println("plugin missing for loading: WorldEdit!");
 			return;
 		}
+		
+		SavingAndLoadingUtils.registerConfigurationSerializables();
 		
 		createArenasConfigs();
 		
@@ -54,6 +57,8 @@ public final class DRMinigames extends JavaPlugin {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		SavingAndLoadingUtils.unregisterConfigurationSerializables();
 		
 		System.out.println("plugin has been disabled.");
 		

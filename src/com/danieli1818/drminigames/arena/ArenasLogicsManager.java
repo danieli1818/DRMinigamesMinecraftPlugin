@@ -35,27 +35,26 @@ public class ArenasLogicsManager {
 	}
 
 	public static ArenaLogic loadArenaLogic(Arena arena, String id) {
-		Map<String, String> arenaLogicMap = (Map<String, String>) arenasLogicsConfig.get(id);
-		if (arenaLogicMap == null || arenaLogicMap.isEmpty() || !arenaLogicMap.containsKey("id")) {
-			return null;
-		}
-		String gameID = arenaLogicMap.get("id");
-		if (gameID == null) {
-			return null;
-		}
-		if (gameID.equals("DRColorShooting")) {
-			ArenaLogic al = new DRColorShooting(arena);
-			al.loadArenaLogicFromMap(arenaLogicMap);
-			return al;
-		}
-		return null;
+		System.out.println("Loading ArenaLogic!");
+		ArenaLogic al = arenasLogicsConfig.getSerializable(id, ArenaLogic.class);
+//		Map<String, String> arenaLogicMap = (Map<String, String>) arenasLogicsConfig.get(id);
+//		if (arenaLogicMap == null || arenaLogicMap.isEmpty() || !arenaLogicMap.containsKey("id")) {
+//			return null;
+//		}
+//		String gameID = arenaLogicMap.get("id");
+//		if (gameID == null) {
+//			return null;
+//		}
+//		if (gameID.equals("DRColorShooting")) {
+//			ArenaLogic al = new DRColorShooting(arena);
+//			al.loadArenaLogicFromMap(arenaLogicMap);
+//			return al;
+//		}
+		return al;
 	}
 	
 	public static void saveArenaLogic(ArenaLogic al, String id) throws IOException {
-		Map<String, String> arenaLogicMap = al.getArenaLogicMap();
-		arenaLogicMap.put("id", al.getID());
-		SavingAndLoadingUtils.saveMap(arenaLogicMap, arenasLogicsConfig, arenasLogicsConfigFile, id);
-//		arenasLogicsConfig.set(id, arenaLogicMap);
+		SavingAndLoadingUtils.saveSerializable(al, arenasLogicsConfig, arenasLogicsConfigFile, id);
 	}
 	
 }

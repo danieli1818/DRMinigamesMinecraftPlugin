@@ -137,7 +137,13 @@ public class ArenasManager {
 		if (!this.arenasConfig.contains(id)) {
 			return new BaseArena(id);
 		}
+		System.out.println("Loading Arena!");
 		Arena arena = (Arena) arenasConfig.get(id);
+		this.arenas.put(id, arena);
+		System.out.println("Loaded Arena!");
+		if (arena == null) {
+			System.out.println("Arena Loaded As Null!");
+		}
 		arena.setType(ArenasLogicsManager.loadArenaLogic(arena, id));
 		return arena;
 	}

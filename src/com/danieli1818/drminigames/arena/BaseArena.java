@@ -273,6 +273,9 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean setType(ArenaLogic al) {
+		if (al == null) {
+			return false;
+		}
 		this.al = al;
 		addObserver(al);
 		return true;
@@ -620,15 +623,15 @@ public class BaseArena extends Observable implements Arena {
 		BaseArena arena = new BaseArena((String)map.get("id"));
 		
 		if (map.containsKey("spawnLocation")) {
-			arena.spawnLocation = locationsMapFromString((String)map.get("spawnLocation"));
+			arena.spawnLocation = (Map<String, Location>) map.get("spawnLocation");
 		}
 		
 		if (map.containsKey("waitingLocation")) {
-			arena.waitingLocation = getLocationFromString((String)map.get("waitingLocation"));
+			arena.waitingLocation = (Location) map.get("waitingLocation");
 		}
 		
 		if (map.containsKey("leaveLocation")) {
-			arena.leaveLocation = getLocationFromString((String)map.get("leaveLocation"));
+			arena.leaveLocation = (Location) map.get("leaveLocation");
 		}
 		
 		if (map.containsKey("limits")) {
@@ -637,7 +640,7 @@ public class BaseArena extends Observable implements Arena {
 		
 		if (map.containsKey("minNumOfPlayers")) {
 			try {
-				arena.minNumPlayers = Integer.parseInt((String)map.get("minNumOfPlayers"));
+				arena.minNumPlayers = (int) map.get("minNumOfPlayers");
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 				arena.minNumPlayers = 4;
@@ -646,16 +649,16 @@ public class BaseArena extends Observable implements Arena {
 		
 		if (map.containsKey("maxNumOfPlayers")) {
 			try {
-				arena.maxNumPlayers = Integer.parseInt((String)map.get("maxNumOfPlayers"));
+				arena.maxNumPlayers = (int) map.get("maxNumOfPlayers");
 			} catch (NumberFormatException e) {
 				e.printStackTrace();
 				arena.maxNumPlayers = 40;
 			}
 		}
 		
-		if (map.containsKey("arenaLogicID")) {
-			arena.al = ArenasLogicsManager.loadArenaLogic(arena, arena.getID());
-		}
+//		if (map.containsKey("arenaLogicID")) {
+//			arena.setType(ArenasLogicsManager.loadArenaLogic(arena, arena.getID()));
+//		}
 		
 		if (map.containsKey("countdown")) {
 			try {

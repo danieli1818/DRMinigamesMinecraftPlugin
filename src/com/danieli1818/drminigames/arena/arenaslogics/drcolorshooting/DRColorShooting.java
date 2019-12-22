@@ -51,8 +51,7 @@ import com.sk89q.worldedit.regions.Region;
 public class DRColorShooting implements ArenaLogic {
 	
 	private Arena arena;
-	private Map<String, List<BlockInformation>> teamColorsBlocks;
-	private Map<BlockInformation, Integer> blocksPoints;
+	private Map<String, List<BlockPointsInformation>> teamColorsBlocks;
 	private int numOfBlocksPerTeam;
 	private Thread thread;
 	private volatile Boolean shouldStop;
@@ -82,11 +81,10 @@ public class DRColorShooting implements ArenaLogic {
 	
 	public DRColorShooting(Arena arena, List<String> teamColors) {
 		this.arena = arena;
-		this.teamColorsBlocks = new HashMap<String, List<BlockInformation>>();
+		this.teamColorsBlocks = new HashMap<String, List<BlockPointsInformation>>();
 		for (String team : teamColors) {
-			this.teamColorsBlocks.put(team, new ArrayList<BlockInformation>());
+			this.teamColorsBlocks.put(team, new ArrayList<BlockPointsInformation>());
 		}
-		this.blocksPoints = new HashMap<BlockInformation, Integer>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
@@ -102,8 +100,7 @@ public class DRColorShooting implements ArenaLogic {
 	
 	public DRColorShooting(Arena arena) {
 		this.arena = arena;
-		this.teamColorsBlocks = new HashMap<String, List<BlockInformation>>();
-		this.blocksPoints = new HashMap<BlockInformation, Integer>();
+		this.teamColorsBlocks = new HashMap<String, List<BlockPointsInformation>>();
 		this.rnd = new Random();
 		this.teamColorsPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
@@ -183,16 +180,17 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void onProjectileHitEvent(ProjectileHitEvent event) {
 		Block block = event.getHitBlock();
-		System.out.println("BlockPoints Contains Key Block Value Is: " + this.blocksPoints.containsKey(new BlockInformation(block)));
-		if (block == null || !this.blocksPoints.containsKey(new BlockInformation(block))) {
+		System.out.println("BlockPoints Contains Key Block Value Is: " + getTeamAndBlockPointsInformationOfBlock(block));
+		if (block == null || getTeamAndBlockPointsInformationOfBlock(block) == null) {
 			return;
 		}
-		String team = getBlockTeam(block);
+		Entry<String, BlockPointsInformation> entry = getTeamAndBlockPointsInformationOfBlock(block);
+		String team = entry.getKey();
 		System.out.println("Team is: " + team + "!");
 //		if (!this.blocksPoints.containsKey(block.getType())) {
 //			return;
 //		}
-		int points = this.blocksPoints.get(new BlockInformation(block));
+		int points = entry.getValue().getPoints();
 		Objective showScores = this.board.getObjective("showscores");
 		if (showScores == null) {
 			System.out.println("showscores Objective Is Null!");
@@ -214,9 +212,20 @@ public class DRColorShooting implements ArenaLogic {
 		spawnRandomBlock(team); // spawn new block.
 	}
 	
+	private Entry<String, BlockPointsInformation> getTeamAndBlockPointsInformationOfBlock(Block block) {
+		for (Entry<String, List<BlockPointsInformation>> entry : this.teamColorsBlocks.entrySet()) {
+			for (BlockPointsInformation blockPointsInformations : entry.getValue()) {
+				if (blockPointsInformations.equals(block)) {
+					return new AbstractMap.SimpleEntry(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		return null;
+	}
+	
 	private String getBlockTeam(Block block) {
-		for (Entry<String, List<BlockInformation>> entry : this.teamColorsBlocks.entrySet()) {
-			for (BlockInformation m : entry.getValue()) {
+		for (Entry<String, List<BlockPointsInformation>> entry : this.teamColorsBlocks.entrySet()) {
+			for (BlockPointsInformation m : entry.getValue()) {
 				if (m.equals(block)) {
 					return entry.getKey();
 				}
@@ -281,8 +290,8 @@ public class DRColorShooting implements ArenaLogic {
 
 	}
 	
-	private BlockInformation getRandomBlockInformationOfTeam(String team) {
-		List<BlockInformation> blockInformations = this.teamColorsBlocks.get(team);
+	private BlockPointsInformation getRandomBlockInformationOfTeam(String team) {
+		List<BlockPointsInformation> blockInformations = this.teamColorsBlocks.get(team);
 		
 		if (blockInformations == null) {
 			return null;
@@ -462,14 +471,13 @@ public class DRColorShooting implements ArenaLogic {
 			
 		}
 		
-		BlockInformation bi = new BlockInformation(data);
+		BlockPointsInformation bi = new BlockPointsInformation(new BlockInformation(data), points);
 		this.teamColorsBlocks.get(teamID).add(bi);
-		this.blocksPoints.put(bi, points);
 	}
 		
 	private boolean spawnRandomBlock(String team) {
 		
-		BlockInformation randomBlockInformation = getRandomBlockInformationOfTeam(team);
+		BlockPointsInformation randomBlockInformation = getRandomBlockInformationOfTeam(team);
 		
 		if (randomBlockInformation == null) {
 			return false;
@@ -660,7 +668,7 @@ public class DRColorShooting implements ArenaLogic {
 			return false;
 		}
 		this.board.registerNewTeam(name);
-		this.teamColorsBlocks.put(name, new ArrayList<BlockInformation>());
+		this.teamColorsBlocks.put(name, new ArrayList<BlockPointsInformation>());
 		return true;
 	}
 	
@@ -739,31 +747,60 @@ public class DRColorShooting implements ArenaLogic {
 		}
 	}
 
-//	@Override
-//	public Map<String, Object> serialize() {
-//		Map<String, Object> map = new HashMap<String, Object>();
-//		map.put("id", arena.getID());
-//		map.put("teamBlocks", combineColorTeamsBlocksMapAndPointsMap());
-//		map.put("numOfBlocksPerTeam", numOfBlocksPerTeam);
-//		map.put("teamColorsPrefixes", teamColorsPrefixes);
-//		map.put("rewardsCommands", rewardsCommands.entrySet().stream().map((Entry<Integer, List<String>> entry) -> {
-//			return new AbstractMap.SimpleEntry<String, List<String>>(entry.getKey().toString(), entry.getValue());
-//		}).collect(Collectors.toMap((Entry::getKey), Entry::getValue)));
-//		return map;
-//	}
-//	
-//	public static DRColorShooting deserialize(Map<String, Object> map) {
-//		if (!map.containsKey("id")) {
-//			return null;
-//		}
-//		DRColorShooting arenaLogic = new DRColorShooting(ArenasManager.getInstance().getArena((String)map.get("id")));
-//		if (arenaLogic.arena == null) {
-//			return null;
-//		}
-//		return null;
-//	}
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("id", arena.getID());
+		map.put("teamBlocks", teamColorsBlocks);
+		map.put("numOfBlocksPerTeam", numOfBlocksPerTeam);
+		map.put("teamColorsPrefixes", teamColorsPrefixes);
+		map.put("rewardsCommands", rewardsCommands.entrySet().stream().map((Entry<Integer, List<String>> entry) -> {
+			return new AbstractMap.SimpleEntry<String, List<String>>(entry.getKey().toString(), entry.getValue());
+		}).collect(Collectors.toMap((Entry::getKey), Entry::getValue)));
+		return map;
+	}
 	
-	private static class BlockPointsInformation implements ConfigurationSerializable {
+	public static DRColorShooting deserialize(Map<String, Object> map) {
+		System.out.println("map:");
+		for (String string : map.keySet()) {
+			System.out.println(string);
+		}
+		System.out.println("done");
+		Throwable t = new Throwable();
+		t.printStackTrace();
+		if (!map.containsKey("id")) {
+			System.out.println("ID Doesn't Exist!");
+			return null;
+		}
+		System.out.println("Is Arena Null: " + ArenasManager.getInstance().getArena((String)map.get("id")) == null);
+		Arena arena = ArenasManager.getInstance().getArena((String)map.get("id"));
+		if (arena == null) {
+			System.out.println();
+		}
+		DRColorShooting arenaLogic = new DRColorShooting(ArenasManager.getInstance().getArena((String)map.get("id")));
+		if (arenaLogic.arena == null) {
+			System.out.println("Arena Is Null!");
+			return null;
+		}
+		if (map.get("teamBlocks") != null && map.get("teamBlocks") instanceof Map<?, ?>) {
+			arenaLogic.teamColorsBlocks = (Map<String, List<BlockPointsInformation>>)map.get("teamBlocks");
+		}
+		if (map.get("numOfBlocksPerTeam") != null && map.get("numOfBlocksPerTeam") instanceof Integer) {
+			arenaLogic.numOfBlocksPerTeam = (Integer)map.get("numOfBlocksPerTeam");
+		}
+		if (map.get("teamColorsPrefixes") != null && map.get("teamColorsPrefixes") instanceof Map<?, ?>) {
+			arenaLogic.teamColorsPrefixes = (Map<String, String>)map.get("teamColorsPrefixes");
+		}
+		if (map.get("rewardsCommands") != null && map.get("rewardsCommands") instanceof Map<?, ?>) {
+			Map<String, List<String>> rewardsCommandsStringMap = (Map<String, List<String>>)map.get("rewardsCommands");
+			arenaLogic.rewardsCommands = new TreeMap<>(rewardsCommandsStringMap.entrySet().stream().map((Entry<String, List<String>> entry) -> {
+				return new AbstractMap.SimpleEntry<>(Integer.parseInt(entry.getKey()), entry.getValue());
+			}).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+		}
+		return arenaLogic;
+	}
+	
+	public static class BlockPointsInformation implements ConfigurationSerializable {
 
 		private BlockInformation blockInfo;
 		private int points;
@@ -773,6 +810,10 @@ public class DRColorShooting implements ArenaLogic {
 			this.points = points;
 		}
 		
+		public void spawnBlockInLocation(Location location) {
+			blockInfo.spawnBlockInLocation(location);
+		}
+
 		@Override
 		public Map<String, Object> serialize() {
 			Map<String, Object> map = new HashMap<String, Object>();
@@ -798,21 +839,17 @@ public class DRColorShooting implements ArenaLogic {
 			}
 		}
 		
-	}
-	
-	private Map<String, List<BlockPointsInformation>> combineColorTeamsBlocksMapAndPointsMap() {
-		Map<String, List<BlockPointsInformation>> map = new HashMap<String, List<BlockPointsInformation>>();
-		for (Entry<String, List<BlockInformation>> entry : this.teamColorsBlocks.entrySet()) {
-			List<BlockPointsInformation> bpisTeamList = new ArrayList<BlockPointsInformation>();
-			for (BlockInformation blockInfo : entry.getValue()) {
-				if (this.blocksPoints.get(blockInfo) == null) {
-					continue;
-				}
-				bpisTeamList.add(new BlockPointsInformation(blockInfo, this.blocksPoints.get(blockInfo)));
-			}
-			map.put(entry.getKey(), bpisTeamList);
+		public boolean equals(Block block) {
+			return this.blockInfo.equals(block);
 		}
-		return map;
+		
+		public BlockInformation getBlockInformation() {
+			return this.blockInfo;
+		}
+		
+		public int getPoints() {
+			return this.points;
+		}
 	}
-
+		
 }
