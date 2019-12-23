@@ -37,9 +37,11 @@ public final class DRMinigames extends JavaPlugin {
 		
 		createArenasConfigs();
 		
+		ArenasManager.getInstance().reloadArenas();
+		
 		createArenasLogicsConfigs();
 		
-		ArenasManager.getInstance().reloadArenas();
+		ArenasManager.getInstance().loadArenasLogics();
 		
 		getCommand("drminigames").setExecutor(new ArenaCommands());
 		

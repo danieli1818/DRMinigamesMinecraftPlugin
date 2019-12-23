@@ -3,6 +3,7 @@ package com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -151,10 +152,22 @@ public class DRColorShooting implements ArenaLogic {
 		for (Team team : getTeams()) {
 			String teamName = team.getName();
 			if (spawns.get(teamName) == null || regions.get(teamName) == null) {
+				System.out.println("Spawn Or Region Of Team: " + teamName + " Doesn't Exist!");
+				System.out.println("Spawns:");
+				for (String spawnName : spawns.keySet()) {
+					System.out.println(spawnName);
+				}
+				System.out.println("Spawns Done!");
+				System.out.println("Regions:");
+				for (String regionName : regions.keySet()) {
+					System.out.println(regionName);
+				}
+				System.out.println("Spawns Done!");
 				return false;
 			}
 		}
 		if (arena.getLimits() == null) {
+			System.out.println("Limits Is Null!");
 			return false;
 		}
 		return true;
@@ -215,7 +228,7 @@ public class DRColorShooting implements ArenaLogic {
 	private Entry<String, BlockPointsInformation> getTeamAndBlockPointsInformationOfBlock(Block block) {
 		for (Entry<String, List<BlockPointsInformation>> entry : this.teamColorsBlocks.entrySet()) {
 			for (BlockPointsInformation blockPointsInformations : entry.getValue()) {
-				if (blockPointsInformations.equals(block)) {
+				if (blockPointsInformations != null && blockPointsInformations.equals(block)) {
 					return new AbstractMap.SimpleEntry(entry.getKey(), entry.getValue());
 				}
 			}
@@ -501,7 +514,7 @@ public class DRColorShooting implements ArenaLogic {
 		
 	}
 	
-	private Scoreboard initializeScoreboard(List<String> teams) {
+	private Scoreboard initializeScoreboard(Collection<String> teams) {
 		
 		ScoreboardManager manager = Bukkit.getScoreboardManager();
 		
@@ -784,6 +797,7 @@ public class DRColorShooting implements ArenaLogic {
 		}
 		if (map.get("teamBlocks") != null && map.get("teamBlocks") instanceof Map<?, ?>) {
 			arenaLogic.teamColorsBlocks = (Map<String, List<BlockPointsInformation>>)map.get("teamBlocks");
+			arenaLogic.board = arenaLogic.initializeScoreboard(arenaLogic.teamColorsBlocks.keySet());
 		}
 		if (map.get("numOfBlocksPerTeam") != null && map.get("numOfBlocksPerTeam") instanceof Integer) {
 			arenaLogic.numOfBlocksPerTeam = (Integer)map.get("numOfBlocksPerTeam");

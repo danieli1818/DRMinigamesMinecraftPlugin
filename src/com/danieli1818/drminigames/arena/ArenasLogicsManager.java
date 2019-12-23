@@ -2,6 +2,7 @@ package com.danieli1818.drminigames.arena;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.configuration.file.FileConfiguration;
@@ -34,9 +35,9 @@ public class ArenasLogicsManager {
 		return instance;
 	}
 
-	public static ArenaLogic loadArenaLogic(Arena arena, String id) {
+	public static ArenaLogic loadArenaLogic(Arena arena) {
 		System.out.println("Loading ArenaLogic!");
-		ArenaLogic al = arenasLogicsConfig.getSerializable(id, ArenaLogic.class);
+		ArenaLogic al = arenasLogicsConfig.getSerializable(arena.getID(), ArenaLogic.class);
 //		Map<String, String> arenaLogicMap = (Map<String, String>) arenasLogicsConfig.get(id);
 //		if (arenaLogicMap == null || arenaLogicMap.isEmpty() || !arenaLogicMap.containsKey("id")) {
 //			return null;
@@ -55,6 +56,14 @@ public class ArenasLogicsManager {
 	
 	public static void saveArenaLogic(ArenaLogic al, String id) throws IOException {
 		SavingAndLoadingUtils.saveSerializable(al, arenasLogicsConfig, arenasLogicsConfigFile, id);
+	}
+	
+	public void loadArenasLogics(List<Arena> arenas) {
+		for (Arena arena : arenas) {
+			if (arena != null) {
+				arena.setType(loadArenaLogic(arena));
+			}
+		}
 	}
 	
 }

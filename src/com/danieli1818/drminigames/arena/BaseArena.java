@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -43,8 +45,6 @@ import com.sk89q.worldedit.regions.Region;
 public class BaseArena extends Observable implements Arena {
 	
 	private final String id;
-	
-	private List<UUID> players;
 	
 	private Map<String, Location> spawnLocation;
 	
@@ -81,7 +81,6 @@ public class BaseArena extends Observable implements Arena {
 	
 	public BaseArena(String id) {
 		this.id = id;
-		this.players = Collections.synchronizedList(new ArrayList<UUID>());
 		this.minNumPlayers = -1;
 		this.maxNumPlayers = -1;
 		this.state = GameState.UNAVAILABLE;
@@ -98,23 +97,22 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean contains(UUID id) {
-		return this.players.contains(id);
+		return getPlayers().contains(id);
 	}
 	
 	public boolean addPlayer(UUID id) {
-		if (this.players.contains(id)) {
+		if (getPlayers().contains(id)) {
 			return false;
 		}
 		if (this.state == GameState.RUNNING || this.state == GameState.UNAVAILABLE) {
 			return false;
 		}
 		Player p = Bukkit.getPlayer(id);
-		this.players.add(p.getUniqueId());
+		this.board.getTeam("players").addPlayer(p);
 		notifyObservers(new JoinEvent(p));
 		p.teleport(this.waitingLocation);
-		this.board.getTeam("players").addPlayer(p);
 		p.setScoreboard(this.board);
-		if (this.state != GameState.COUNTDOWN && this.players.size() >= this.minNumPlayers) {
+		if (this.state != GameState.COUNTDOWN && getPlayers().size() >= this.minNumPlayers) {
 			this.state = GameState.COUNTDOWN;
 			Arena thisArena = this;
 			updateScoreboard(null);
@@ -124,14 +122,14 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean removePlayer(UUID id) {
-		if (!this.players.contains(id)) {
+		if (!getPlayers().contains(id)) {
 			return false;
 		}
-		this.players.remove(id);
-		if (this.players.isEmpty()) {
+		this.board.getTeam("players").removePlayer(Bukkit.getOfflinePlayer(id));
+		if (getPlayers().isEmpty()) {
 			finishGame();
 		} else {
-			if (this.state == GameState.COUNTDOWN && this.players.size() < this.minNumPlayers) {
+			if (this.state == GameState.COUNTDOWN && getPlayers().size() < this.minNumPlayers) {
 				this.state = GameState.WAITING;
 				this.countdownTimer.stopTimer();
 			}
@@ -143,7 +141,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public void reset() {
-		this.players.clear();
+		kickAllPlayers();
 		if (this.state != GameState.UNAVAILABLE) {
 			if (this.state == GameState.COUNTDOWN) {
 				this.countdownTimer.stopTimer();
@@ -188,7 +186,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private boolean canBeAvailable() {
-		if (this.players == null) {
+		if (getPlayers() == null) {
 			return false;
 		}
 		if (this.spawnLocation == null || this.spawnLocation.isEmpty()) {
@@ -221,8 +219,8 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public void kickAllPlayers() {
-		while (!this.players.isEmpty()) {
-			kickPlayer(this.players.get(0));
+		while (!getPlayers().isEmpty()) {
+			kickPlayer(getPlayers().get(0));
 		}
 	}
 		
@@ -293,7 +291,9 @@ public class BaseArena extends Observable implements Arena {
 
 	@Override
 	public List<UUID> getPlayers() {
-		return this.players;
+		return this.board.getTeam("players").getPlayers().stream().map((OfflinePlayer player) -> {
+			return player.getUniqueId();
+		}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -608,6 +608,8 @@ public class BaseArena extends Observable implements Arena {
 		
 		arenaMap.put("kits", kitListToString(this.kits));
 		
+		arenaMap.put("regions", getNamedRegionsAsStrings());
+		
 		return arenaMap;
 	
 	}
@@ -675,7 +677,24 @@ public class BaseArena extends Observable implements Arena {
 			arena.kits = kitListFromString((String)map.get("kits"));
 		}
 		
+		if (map.containsKey("regions")) {
+			arena.setNamedRegionsFromStringsMap((Map<String, String>)map.get("regions"));
+		}
+		
 		return arena;
+	}
+	
+	private Map<String, String> getNamedRegionsAsStrings() {
+		return (this.regions.entrySet().stream().map((Entry<String, Region> entry) -> {
+			return new AbstractMap.SimpleEntry<String, String>(entry.getKey(), regionToString(entry.getValue()));
+		}).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+	}
+	
+	private void setNamedRegionsFromStringsMap(Map<String, String> map) {
+		this.regions = new HashMap<String, Region>();
+		for (Entry<String, String> entry : map.entrySet()) {
+			this.regions.put(entry.getKey(), regionFromString(entry.getValue()));
+		}
 	}
 	
 }

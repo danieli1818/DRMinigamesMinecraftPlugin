@@ -25,7 +25,9 @@ public class MinigamesEventsListener implements Listener {
 		if (shooter != null && shooter instanceof Player) {
 			Player player = (Player)shooter;
 			Arena arena = ArenasManager.getInstance().getArena(player.getUniqueId());
-			arena.sendEvent(event);
+			if (arena != null) {
+				arena.sendEvent(event);
+			}
 		}
 	}
 	

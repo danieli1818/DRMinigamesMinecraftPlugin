@@ -144,7 +144,7 @@ public class ArenasManager {
 		if (arena == null) {
 			System.out.println("Arena Loaded As Null!");
 		}
-		arena.setType(ArenasLogicsManager.loadArenaLogic(arena, id));
+//		arena.setType(ArenasLogicsManager.loadArenaLogic(arena, id));
 		return arena;
 	}
 	
@@ -170,6 +170,12 @@ public class ArenasManager {
 			}
 		}
 		arenasConfig.save(arenasConfigFile);
+	}
+	
+	public void loadArenasLogics() {
+		for (Arena arena : this.arenas.values()) {
+			arena.setType(ArenasLogicsManager.loadArenaLogic(arena));
+		}
 	}
 	
 	
