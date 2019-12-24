@@ -121,6 +121,15 @@ public class DRColorShooting implements ArenaLogic {
 			this.shouldStop = false;
 			this.shouldStopLock.notifyAll();
 		}
+		for (Entry<String, List<BlockPointsInformation>> entry : this.teamColorsBlocks.entrySet()) {
+			boolean flag = false;
+			for (BlockPointsInformation bpi : entry.getValue()) {
+				if (bpi != null) {
+					flag = true;
+				}
+			}
+			System.out.println("start flag is: " + flag);
+		}
 		this.timer.start();
 		int taskID = runSyncStartTasks();
 		if (taskID == -1) {
@@ -228,6 +237,11 @@ public class DRColorShooting implements ArenaLogic {
 	private Entry<String, BlockPointsInformation> getTeamAndBlockPointsInformationOfBlock(Block block) {
 		for (Entry<String, List<BlockPointsInformation>> entry : this.teamColorsBlocks.entrySet()) {
 			for (BlockPointsInformation blockPointsInformations : entry.getValue()) {
+				if (blockPointsInformations == null) {
+					System.out.println("Is Null!");
+				} else {
+					System.out.println("Not Null!");
+				}
 				if (blockPointsInformations != null && blockPointsInformations.equals(block)) {
 					return new AbstractMap.SimpleEntry(entry.getKey(), entry.getValue());
 				}
@@ -658,10 +672,13 @@ public class DRColorShooting implements ArenaLogic {
 		
 		Objective showScores = this.board.getObjective("showscores");
 		
+		System.out.println("preStartInitialize Teams:");
 		for (Team team : this.board.getTeams()) {
+			System.out.println(team.getName());
 			Score score = showScores.getScore(team.getName());
 			score.setScore(0);
 		}
+		System.out.println("done preStartInitalize Teams!");
 		
 	}
 	
@@ -796,8 +813,17 @@ public class DRColorShooting implements ArenaLogic {
 			return null;
 		}
 		if (map.get("teamBlocks") != null && map.get("teamBlocks") instanceof Map<?, ?>) {
+			arenaLogic.board = arenaLogic.initializeScoreboard(((Map<String, List<BlockPointsInformation>>)map.get("teamBlocks")).keySet());
 			arenaLogic.teamColorsBlocks = (Map<String, List<BlockPointsInformation>>)map.get("teamBlocks");
-			arenaLogic.board = arenaLogic.initializeScoreboard(arenaLogic.teamColorsBlocks.keySet());
+			for (Entry<String, List<BlockPointsInformation>> entry : arenaLogic.teamColorsBlocks.entrySet()) {
+				boolean flag = false;
+				for (BlockPointsInformation bpi : entry.getValue()) {
+					if (bpi != null) {
+						flag = true;
+					}
+				}
+				System.out.println("deserializable flag is: " + flag);
+			}
 		}
 		if (map.get("numOfBlocksPerTeam") != null && map.get("numOfBlocksPerTeam") instanceof Integer) {
 			arenaLogic.numOfBlocksPerTeam = (Integer)map.get("numOfBlocksPerTeam");
@@ -837,18 +863,31 @@ public class DRColorShooting implements ArenaLogic {
 		}
 		
 		public static BlockPointsInformation deserializable(Map<String, Object> map) {
+			System.out.println("loading blockpointsinformation!");
 			if (!map.containsKey("blockInfo") || !map.containsKey("points")) {
+				System.out.println("Error in contains!");
 				return null;
 			}
 			Object o = map.get("blockInfo");
 			if (o == null || !(o instanceof BlockInformation)) {
+				System.out.println("Error in instanceof!");
 				return null;
 			}
 			BlockInformation blockInfo = (BlockInformation)o;
 			try {
-				int points = Integer.parseInt((String)map.get("points"));
+				int points;
+				if (map.get("points") instanceof Byte) {
+					points = (Byte)map.get("points");
+				} else if (map.get("points") instanceof Integer) {
+					points = (Integer)map.get("points");
+				} else {
+					System.out.println("hi");
+					return null;
+				}
+				System.out.println("loaded blockpointsinformation!");
 				return new BlockPointsInformation(blockInfo, points);
 			} catch (NumberFormatException e) {
+				System.out.println("Error Exception!");
 				return null;
 			}
 		}

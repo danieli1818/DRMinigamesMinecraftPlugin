@@ -99,15 +99,16 @@ public class BlockInformation implements ConfigurationSerializable {
 	}
 	
 	public static BlockInformation deserialize(Map<String, Object> map) {
+		System.out.println("deserializing blockinformation!");
 		BlockInformation blockInformation = new BlockInformation();
 		if (map.containsKey("material")) {
 			try {
-				blockInformation.material = Material.getMaterial((int) map.get("material"));
+				blockInformation.material = Material.getMaterial((Integer) map.get("material"));
 				if (!blockInformation.material.isBlock()) {
 					return null;
 				}
 				if (map.containsKey("data")) {
-					blockInformation.data = (byte)map.get("data");
+					blockInformation.data = ((Integer)map.get("data")).byteValue();
 				}
 				return blockInformation;
 			} catch (NumberFormatException e) {
