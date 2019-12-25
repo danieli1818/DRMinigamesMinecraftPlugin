@@ -36,21 +36,7 @@ public class ArenasLogicsManager {
 	}
 
 	public static ArenaLogic loadArenaLogic(Arena arena) {
-		System.out.println("Loading ArenaLogic!");
 		ArenaLogic al = arenasLogicsConfig.getSerializable(arena.getID(), ArenaLogic.class);
-//		Map<String, String> arenaLogicMap = (Map<String, String>) arenasLogicsConfig.get(id);
-//		if (arenaLogicMap == null || arenaLogicMap.isEmpty() || !arenaLogicMap.containsKey("id")) {
-//			return null;
-//		}
-//		String gameID = arenaLogicMap.get("id");
-//		if (gameID == null) {
-//			return null;
-//		}
-//		if (gameID.equals("DRColorShooting")) {
-//			ArenaLogic al = new DRColorShooting(arena);
-//			al.loadArenaLogicFromMap(arenaLogicMap);
-//			return al;
-//		}
 		return al;
 	}
 	

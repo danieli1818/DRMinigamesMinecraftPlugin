@@ -13,6 +13,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 import com.danieli1818.drminigames.arena.BaseArena;
+import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.BlockPointsInformation;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.DRColorShooting;
 import com.danieli1818.drminigames.common.BlockInformation;
 import com.danieli1818.drminigames.common.configurationserializables.Timer;
@@ -73,7 +74,7 @@ public class SavingAndLoadingUtils {
 		ConfigurationSerialization.registerClass(DRColorShooting.class);
 		ConfigurationSerialization.registerClass(Timer.class);
 		ConfigurationSerialization.registerClass(BlockInformation.class);
-		ConfigurationSerialization.registerClass(DRColorShooting.BlockPointsInformation.class);
+		ConfigurationSerialization.registerClass(BlockPointsInformation.class);
 	}
 	
 	public static void unregisterConfigurationSerializables() {
@@ -83,7 +84,7 @@ public class SavingAndLoadingUtils {
 		ConfigurationSerialization.unregisterClass(DRColorShooting.class);
 		ConfigurationSerialization.unregisterClass(Timer.class);
 		ConfigurationSerialization.unregisterClass(BlockInformation.class);
-		ConfigurationSerialization.unregisterClass(DRColorShooting.BlockPointsInformation.class);
+		ConfigurationSerialization.unregisterClass(BlockPointsInformation.class);
 	}
 	
 }

@@ -75,12 +75,10 @@ public class BlockInformation implements ConfigurationSerializable {
 	
 	@Override
 	public boolean equals(Object obj) {
-		System.out.println("Equals Of BlockInformation Class Has Been Called!");
 		if (!(obj instanceof BlockInformation)) {
 			return false;
 		}
 		BlockInformation other = (BlockInformation)obj;
-		System.out.println("This BlockInformation: material: " + this.material +" data: " + this.data + " And The Other One: material: " + other.material + " data: " + other.data + " !");
 		return this.material == other.material && this.data == other.data;
 	}
 	
@@ -99,7 +97,6 @@ public class BlockInformation implements ConfigurationSerializable {
 	}
 	
 	public static BlockInformation deserialize(Map<String, Object> map) {
-		System.out.println("deserializing blockinformation!");
 		BlockInformation blockInformation = new BlockInformation();
 		if (map.containsKey("material")) {
 			try {

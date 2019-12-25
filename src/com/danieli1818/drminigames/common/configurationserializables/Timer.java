@@ -53,7 +53,6 @@ public class Timer implements ConfigurationSerializable {
 	
 	public void start() {
 		this.hasStarted = true;
-		System.out.println("Timer Started!");
 		synchronized(this.shouldStopLock) {
 			this.shouldStop = false;
 		}
@@ -73,9 +72,6 @@ public class Timer implements ConfigurationSerializable {
 					timeLeft = timeInMiliSeconds;
 					
 					synchronized(consumer) {
-						Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
-							System.out.println("running consumer!");
-						});
 						consumer.accept(timeLeft);
 					}
 					while (timeLeft - period > 0) {
@@ -87,9 +83,6 @@ public class Timer implements ConfigurationSerializable {
 						}
 						timeLeft -= period;
 						synchronized(consumer) {
-							Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
-								System.out.println("running consumer!");
-							});
 							consumer.accept(timeLeft);
 						}
 					}
@@ -103,9 +96,6 @@ public class Timer implements ConfigurationSerializable {
 					}
 					timeLeft = 0;
 					synchronized(consumer) {
-						Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
-							System.out.println("running consumer!");
-						});
 						consumer.accept(timeLeft);
 					}
 				} catch (InterruptedException e) {

@@ -11,6 +11,7 @@ com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShooting.c
 com\danieli1818\drminigames\utils\ArenasManager.class
 com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShooting$1.class
 com\danieli1818\drminigames\common\configurationserializables\collections\lists\ConfigurationSerializableList.class
+com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\BlockPointsInformation.class
 com\danieli1818\drminigames\DRMinigames.class
 META-INF\MANIFEST.MF
 META-INF\maven\com.danieli1818\drminigames\pom.properties
@@ -22,7 +23,6 @@ com\danieli1818\drminigames\resources\api\Arena.class
 com\danieli1818\drminigames\common\configurationserializables\collections\ConfigurationSerializableCollection.class
 com\danieli1818\drminigames\common\exceptions\InvalidConfigurationDataException.class
 com\danieli1818\drminigames\utils\RegionUtils.class
-com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShooting$BlockPointsInformation.class
 com\danieli1818\drminigames\utils\RandomWeightedList.class
 com\danieli1818\drminigames\utils\SavingAndLoadingUtils.class
 com\danieli1818\drminigames\arena\kits\Kit.class

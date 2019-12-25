@@ -63,6 +63,7 @@ public class DRColorShooting implements ArenaLogic {
 	private NavigableMap<Integer, List<String>> rewardsCommands;
 	private SetCommands setCommands;
 	private Timer timer;
+	private List<Location> spawnedBlocks;
 	
 //	private class TeamColorBlock {
 //		
@@ -121,15 +122,6 @@ public class DRColorShooting implements ArenaLogic {
 			this.shouldStop = false;
 			this.shouldStopLock.notifyAll();
 		}
-		for (Entry<String, List<BlockPointsInformation>> entry : this.teamColorsBlocks.entrySet()) {
-			boolean flag = false;
-			for (BlockPointsInformation bpi : entry.getValue()) {
-				if (bpi != null) {
-					flag = true;
-				}
-			}
-			System.out.println("start flag is: " + flag);
-		}
 		this.timer.start();
 		int taskID = runSyncStartTasks();
 		if (taskID == -1) {
@@ -161,22 +153,10 @@ public class DRColorShooting implements ArenaLogic {
 		for (Team team : getTeams()) {
 			String teamName = team.getName();
 			if (spawns.get(teamName) == null || regions.get(teamName) == null) {
-				System.out.println("Spawn Or Region Of Team: " + teamName + " Doesn't Exist!");
-				System.out.println("Spawns:");
-				for (String spawnName : spawns.keySet()) {
-					System.out.println(spawnName);
-				}
-				System.out.println("Spawns Done!");
-				System.out.println("Regions:");
-				for (String regionName : regions.keySet()) {
-					System.out.println(regionName);
-				}
-				System.out.println("Spawns Done!");
 				return false;
 			}
 		}
 		if (arena.getLimits() == null) {
-			System.out.println("Limits Is Null!");
 			return false;
 		}
 		return true;
@@ -184,7 +164,6 @@ public class DRColorShooting implements ArenaLogic {
 	
 	@Override
 	public void update(Observable o, Object arg) {
-		System.out.println("Update Function Has Been Called!");
 		if (!this.arena.isRunning()) {
 			return;
 		}
@@ -194,7 +173,6 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void onEvent(Event e) {
-		System.out.println("OnEvent Function Has Been Called!");
 		if (e instanceof ProjectileHitEvent) {
 			onProjectileHitEvent((ProjectileHitEvent)e);
 		}
@@ -202,20 +180,17 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void onProjectileHitEvent(ProjectileHitEvent event) {
 		Block block = event.getHitBlock();
-		System.out.println("BlockPoints Contains Key Block Value Is: " + getTeamAndBlockPointsInformationOfBlock(block));
 		if (block == null || getTeamAndBlockPointsInformationOfBlock(block) == null) {
 			return;
 		}
 		Entry<String, BlockPointsInformation> entry = getTeamAndBlockPointsInformationOfBlock(block);
 		String team = entry.getKey();
-		System.out.println("Team is: " + team + "!");
 //		if (!this.blocksPoints.containsKey(block.getType())) {
 //			return;
 //		}
 		int points = entry.getValue().getPoints();
 		Objective showScores = this.board.getObjective("showscores");
 		if (showScores == null) {
-			System.out.println("showscores Objective Is Null!");
 			return;
 		}
 		Score score = showScores.getScore(team);
@@ -225,11 +200,11 @@ public class DRColorShooting implements ArenaLogic {
 //		}
 //		Score score = scores.iterator().next();
 		if (score == null) {
-			System.out.println("score Is Null!");
 			return;
 		}
 		score.setScore(score.getScore() + points);
 		block.setType(Material.AIR); // remove block.
+		this.spawnedBlocks.remove(block.getLocation());
 		event.getEntity().remove(); // remove projectile.
 		spawnRandomBlock(team); // spawn new block.
 	}
@@ -237,13 +212,8 @@ public class DRColorShooting implements ArenaLogic {
 	private Entry<String, BlockPointsInformation> getTeamAndBlockPointsInformationOfBlock(Block block) {
 		for (Entry<String, List<BlockPointsInformation>> entry : this.teamColorsBlocks.entrySet()) {
 			for (BlockPointsInformation blockPointsInformations : entry.getValue()) {
-				if (blockPointsInformations == null) {
-					System.out.println("Is Null!");
-				} else {
-					System.out.println("Not Null!");
-				}
 				if (blockPointsInformations != null && blockPointsInformations.equals(block)) {
-					return new AbstractMap.SimpleEntry(entry.getKey(), entry.getValue());
+					return new AbstractMap.SimpleEntry(entry.getKey(), blockPointsInformations);
 				}
 			}
 		}
@@ -292,9 +262,10 @@ public class DRColorShooting implements ArenaLogic {
 		}
 	}
 	
-	private void spawnRandomTeamBlocks() {
+	private List<Location> spawnRandomTeamBlocks() {
 		Map<String, Region> regions = this.arena.getRegions();
 		Map<String, List<Location>> locationsPerRegion = new HashMap<String, List<Location>>();
+		List<Location> allLocations = new ArrayList<Location>();
 		for (Team team : getTeams()) {
 			
 			String teamName = team.getName();
@@ -306,6 +277,7 @@ public class DRColorShooting implements ArenaLogic {
 			
 			if (locations != null) {
 				locationsPerRegion.put(teamName, locations);
+				allLocations.addAll(locations);
 			}
 		}
 
@@ -314,6 +286,8 @@ public class DRColorShooting implements ArenaLogic {
 				getRandomBlockInformationOfTeam(locations.getKey()).spawnBlockInLocation(location);
 			}
 		}
+		
+		return allLocations;
 
 	}
 	
@@ -350,8 +324,6 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void finish() {
-		
-		System.out.println("Finish Function Has Been Called!");
 		
 		stopTimer();
 		
@@ -524,6 +496,8 @@ public class DRColorShooting implements ArenaLogic {
 		
 		randomBlockInformation.spawnBlockInLocation(locations.get(0));
 		
+		this.spawnedBlocks.add(locations.get(0));
+		
 		return true;
 		
 	}
@@ -666,19 +640,29 @@ public class DRColorShooting implements ArenaLogic {
 			this.board.resetScores(entry);
 		}
 		
+		resetSynchronized();
+		
+	}
+	
+	private void resetSynchronized() {
+		
+		Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
+			for (Location location : this.spawnedBlocks) {
+				location.getBlock().setType(Material.AIR);
+			}
+		});
+
+		
 	}
 	
 	private void preStartInitialize() {
 		
 		Objective showScores = this.board.getObjective("showscores");
 		
-		System.out.println("preStartInitialize Teams:");
 		for (Team team : this.board.getTeams()) {
-			System.out.println(team.getName());
 			Score score = showScores.getScore(team.getName());
 			score.setScore(0);
 		}
-		System.out.println("done preStartInitalize Teams!");
 		
 	}
 	
@@ -735,7 +719,7 @@ public class DRColorShooting implements ArenaLogic {
 				preStartInitialize();
 				setTeamsToPlayers();
 				teleportPlayersToArena();
-				spawnRandomTeamBlocks();
+				spawnedBlocks = spawnRandomTeamBlocks();
 				setSidebarScoreboardToPlayers();
 				
 			}
@@ -754,7 +738,6 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private void onTimeUpdated(final long time) {
-		System.out.println("onTimeUpdated Function has been called with time: " + time);
 		if (time <= 0) {
 			stop();
 		} else {
@@ -791,39 +774,17 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	public static DRColorShooting deserialize(Map<String, Object> map) {
-		System.out.println("map:");
-		for (String string : map.keySet()) {
-			System.out.println(string);
-		}
-		System.out.println("done");
-		Throwable t = new Throwable();
-		t.printStackTrace();
 		if (!map.containsKey("id")) {
-			System.out.println("ID Doesn't Exist!");
 			return null;
 		}
-		System.out.println("Is Arena Null: " + ArenasManager.getInstance().getArena((String)map.get("id")) == null);
 		Arena arena = ArenasManager.getInstance().getArena((String)map.get("id"));
-		if (arena == null) {
-			System.out.println();
-		}
 		DRColorShooting arenaLogic = new DRColorShooting(ArenasManager.getInstance().getArena((String)map.get("id")));
 		if (arenaLogic.arena == null) {
-			System.out.println("Arena Is Null!");
 			return null;
 		}
 		if (map.get("teamBlocks") != null && map.get("teamBlocks") instanceof Map<?, ?>) {
 			arenaLogic.board = arenaLogic.initializeScoreboard(((Map<String, List<BlockPointsInformation>>)map.get("teamBlocks")).keySet());
 			arenaLogic.teamColorsBlocks = (Map<String, List<BlockPointsInformation>>)map.get("teamBlocks");
-			for (Entry<String, List<BlockPointsInformation>> entry : arenaLogic.teamColorsBlocks.entrySet()) {
-				boolean flag = false;
-				for (BlockPointsInformation bpi : entry.getValue()) {
-					if (bpi != null) {
-						flag = true;
-					}
-				}
-				System.out.println("deserializable flag is: " + flag);
-			}
 		}
 		if (map.get("numOfBlocksPerTeam") != null && map.get("numOfBlocksPerTeam") instanceof Integer) {
 			arenaLogic.numOfBlocksPerTeam = (Integer)map.get("numOfBlocksPerTeam");
@@ -838,71 +799,6 @@ public class DRColorShooting implements ArenaLogic {
 			}).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
 		}
 		return arenaLogic;
-	}
-	
-	public static class BlockPointsInformation implements ConfigurationSerializable {
-
-		private BlockInformation blockInfo;
-		private int points;
-		
-		public BlockPointsInformation(BlockInformation blockInfo, int points) {
-			this.blockInfo = blockInfo;
-			this.points = points;
-		}
-		
-		public void spawnBlockInLocation(Location location) {
-			blockInfo.spawnBlockInLocation(location);
-		}
-
-		@Override
-		public Map<String, Object> serialize() {
-			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("blockInfo", this.blockInfo);
-			map.put("points", this.points);
-			return map;
-		}
-		
-		public static BlockPointsInformation deserializable(Map<String, Object> map) {
-			System.out.println("loading blockpointsinformation!");
-			if (!map.containsKey("blockInfo") || !map.containsKey("points")) {
-				System.out.println("Error in contains!");
-				return null;
-			}
-			Object o = map.get("blockInfo");
-			if (o == null || !(o instanceof BlockInformation)) {
-				System.out.println("Error in instanceof!");
-				return null;
-			}
-			BlockInformation blockInfo = (BlockInformation)o;
-			try {
-				int points;
-				if (map.get("points") instanceof Byte) {
-					points = (Byte)map.get("points");
-				} else if (map.get("points") instanceof Integer) {
-					points = (Integer)map.get("points");
-				} else {
-					System.out.println("hi");
-					return null;
-				}
-				System.out.println("loaded blockpointsinformation!");
-				return new BlockPointsInformation(blockInfo, points);
-			} catch (NumberFormatException e) {
-				System.out.println("Error Exception!");
-				return null;
-			}
-		}
-		
-		public boolean equals(Block block) {
-			return this.blockInfo.equals(block);
-		}
-		
-		public BlockInformation getBlockInformation() {
-			return this.blockInfo;
-		}
-		
-		public int getPoints() {
-			return this.points;
-		}
 	}
 		
 }
