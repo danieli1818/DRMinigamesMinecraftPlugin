@@ -7,6 +7,7 @@ com\danieli1818\drminigames\arena\ArenasLogicsManager.class
 com\danieli1818\drminigames\listeners\MinigamesEventsListener.class
 com\danieli1818\drminigames\common\configurationserializables\Timer$1.class
 META-INF\maven\com.danieli1818\drminigames\pom.xml
+com\danieli1818\drminigames\common\TextScoreboard.class
 com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShooting.class
 com\danieli1818\drminigames\utils\ArenasManager.class
 com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShooting$1.class

@@ -28,6 +28,7 @@ import org.bukkit.util.BlockVector;
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.danieli1818.drminigames.arena.kits.KitsManager;
+import com.danieli1818.drminigames.common.TextScoreboard;
 import com.danieli1818.drminigames.common.configurationserializables.Timer;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.common.exceptions.InvalidConfigurationDataException;
@@ -64,7 +65,7 @@ public class BaseArena extends Observable implements Arena {
 	
 	private Map<String, Region> regions;
 	
-	private Scoreboard board;
+	private TextScoreboard board;
 	
 	private Timer countdownTimer;
 	
@@ -111,7 +112,7 @@ public class BaseArena extends Observable implements Arena {
 		this.board.getTeam("players").addPlayer(p);
 		notifyObservers(new JoinEvent(p));
 		p.teleport(this.waitingLocation);
-		p.setScoreboard(this.board);
+		this.board.setScoreboardToPlayer(p);
 		if (this.state != GameState.COUNTDOWN && getPlayers().size() >= this.minNumPlayers) {
 			this.state = GameState.COUNTDOWN;
 			Arena thisArena = this;
@@ -525,10 +526,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private void initializeScoreboard() {
-		this.board = Bukkit.getScoreboardManager().getNewScoreboard();
-		Objective o = this.board.registerNewObjective("status", "dummy");
-		o.setDisplaySlot(DisplaySlot.SIDEBAR);
-		o.setDisplayName("Minigame\n");
+		this.board = new TextScoreboard("DRMinigame").setLine(1, "status:");
 		this.board.registerNewTeam("players");
 	}
 	
@@ -545,18 +543,19 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private String getStatusString(Long time) {
-		String result;
-		if (this.al != null) {
-			result = this.al.getID();
-		} else {
-			result = "DRMinigame";
-		}
-		result += "\n";
+		String result = getStateString();
+//		if (this.al != null) {
+//			result = this.al.getID();
+//		} else {
+//			result = "DRMinigame";
+//		}
+//		result += "\n";
 		if (this.state != GameState.COUNTDOWN) {
-			result += getStateString();
+//			result += getStateString();
 		} else {
+			result += ": ";
 			if (time != null) {
-				result += time;
+				result += time / 1000;
 			} else {
 				result += "NaN";
 			}
@@ -566,8 +565,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private void updateScoreboard(Long time) {
-		Objective o = this.board.getObjective("status");
-		o.setDisplayName(getStatusString(time));
+		this.board.setLine(2, getStatusString(time));
 	}
 
 	private void onTimeUpdated(long time) {
