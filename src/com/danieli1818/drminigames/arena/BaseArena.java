@@ -608,6 +608,8 @@ public class BaseArena extends Observable implements Arena {
 		
 		arenaMap.put("regions", getNamedRegionsAsStrings());
 		
+		arenaMap.put("isAvailable", isAvailable());
+		
 		return arenaMap;
 	
 	}
@@ -677,6 +679,14 @@ public class BaseArena extends Observable implements Arena {
 		
 		if (map.containsKey("regions")) {
 			arena.setNamedRegionsFromStringsMap((Map<String, String>)map.get("regions"));
+		}
+		
+		if (map.containsKey("isAvailable")) {
+			if (map.get("isAvailable") != null && map.get("isAvailable") instanceof Boolean) {
+				if ((Boolean)map.get("isAvailable")) {
+					arena.setAvailable();
+				}
+			}
 		}
 		
 		return arena;

@@ -39,8 +39,11 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
 import com.danieli1818.drminigames.DRMinigames;
+import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.AddCommands;
+import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.RemoveCommands;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.subcommands.SetCommands;
 import com.danieli1818.drminigames.common.BlockInformation;
+import com.danieli1818.drminigames.common.arenalogics.TeamsArenaLogic;
 import com.danieli1818.drminigames.common.configurationserializables.Timer;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.resources.api.Arena;
@@ -49,21 +52,15 @@ import com.danieli1818.drminigames.utils.ArenasManager;
 import com.danieli1818.drminigames.utils.RegionUtils;
 import com.sk89q.worldedit.regions.Region;
 
-public class DRColorShooting implements ArenaLogic {
+public class DRColorShooting extends TeamsArenaLogic implements ArenaLogic {
 	
-	private Arena arena;
 	private Map<String, List<BlockPointsInformation>> teamColorsBlocks;
 	private int numOfBlocksPerTeam;
-	private Thread thread;
-	private volatile Boolean shouldStop;
-	private final Object shouldStopLock = new Object();
 	private Random rnd;
-	private Map<String, String> teamColorsPrefixes;
-	private Scoreboard board;
-	private NavigableMap<Integer, List<String>> rewardsCommands;
 	private SetCommands setCommands;
-	private Timer timer;
 	private List<Location> spawnedBlocks;
+	private AddCommands addCommands;
+	private RemoveCommands removeCommands;
 	
 //	private class TeamColorBlock {
 //		
@@ -82,67 +79,31 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	public DRColorShooting(Arena arena, List<String> teamColors) {
-		this.arena = arena;
+		super(arena, teamColors);
 		this.teamColorsBlocks = new HashMap<String, List<BlockPointsInformation>>();
 		for (String team : teamColors) {
 			this.teamColorsBlocks.put(team, new ArrayList<BlockPointsInformation>());
 		}
 		this.rnd = new Random();
-		this.teamColorsPrefixes = new HashMap<String, String>();
-		this.rewardsCommands = new TreeMap<Integer, List<String>>();
-		this.board = initializeScoreboard(teamColors);
-		this.shouldStop = false;
 		this.numOfBlocksPerTeam = 10;
 		this.setCommands = new SetCommands(this);
-		this.timer = new Timer();
-		this.timer.setTask((Long time) -> {
-			onTimeUpdated(time);
-		});
+		this.addCommands = new AddCommands(this);
+		this.removeCommands = new RemoveCommands(this);
 	}
 	
 	public DRColorShooting(Arena arena) {
-		this.arena = arena;
+		super(arena);
 		this.teamColorsBlocks = new HashMap<String, List<BlockPointsInformation>>();
 		this.rnd = new Random();
-		this.teamColorsPrefixes = new HashMap<String, String>();
-		this.rewardsCommands = new TreeMap<Integer, List<String>>();
-		this.board = initializeScoreboard(new ArrayList<String>());
-		this.shouldStop = false;
 		this.numOfBlocksPerTeam = 10;
 		this.setCommands = new SetCommands(this);
-		this.timer = new Timer();
-		this.timer.setTask((Long time) -> {
-			onTimeUpdated(time);
-		});
+		this.addCommands = new AddCommands(this);
+		this.removeCommands = new RemoveCommands(this);
 	}
 
 	@Override
 	public void start(Arena arena) {
-		synchronized(this.shouldStopLock) {
-			this.shouldStop = false;
-			this.shouldStopLock.notifyAll();
-		}
-		this.timer.start();
-		int taskID = runSyncStartTasks();
-		if (taskID == -1) {
-			synchronized(this.shouldStopLock) {
-				this.shouldStop = true;
-				this.shouldStopLock.notifyAll();
-			}
-			System.err.println("Error Running Sync Tasks For Starting The Game!");
-			finish();
-		}
-		synchronized(this.shouldStopLock) {
-			while (!this.shouldStop) {
-				try {
-					this.shouldStopLock.wait();
-				} catch (InterruptedException e) {
-					// e.printStackTrace();
-				}
-			}
-
-		}
-		finish();
+		super.start(arena);
 		
 	}
 
@@ -164,7 +125,7 @@ public class DRColorShooting implements ArenaLogic {
 	
 	@Override
 	public void update(Observable o, Object arg) {
-		if (!this.arena.isRunning()) {
+		if (!super.isRunning()) {
 			return;
 		}
 		if (arg instanceof Event) {
@@ -189,20 +150,7 @@ public class DRColorShooting implements ArenaLogic {
 //			return;
 //		}
 		int points = entry.getValue().getPoints();
-		Objective showScores = this.board.getObjective("showscores");
-		if (showScores == null) {
-			return;
-		}
-		Score score = showScores.getScore(team);
-//		Set<Score> scores = this.board.getScores(team);
-//		if (scores == null || scores.isEmpty()) {
-//			return;
-//		}
-//		Score score = scores.iterator().next();
-		if (score == null) {
-			return;
-		}
-		score.setScore(score.getScore() + points);
+		super.addPointsToTeam(points, team);
 		block.setType(Material.AIR); // remove block.
 		this.spawnedBlocks.remove(block.getLocation());
 		event.getEntity().remove(); // remove projectile.
@@ -236,10 +184,14 @@ public class DRColorShooting implements ArenaLogic {
 		return "DRColorShooting";
 	}
 	
+	public String getArenaID() {
+		return super.getID();
+	}
+	
 	private void setTeamsToPlayers() {
-		List<UUID> uuids = this.arena.getPlayers();
+		List<UUID> uuids = super.getPlayers();
 		Collections.shuffle(uuids);
-		Set<Team> teams = this.board.getTeams();
+		Set<Team> teams = super.getTeams();
 		Iterator<Team> currentTeamColor = teams.iterator();
 		for (UUID uuid : uuids) {
 			if (!currentTeamColor.hasNext()) {
@@ -251,7 +203,7 @@ public class DRColorShooting implements ArenaLogic {
 	
 	private void teleportPlayersToArena() {
 		Server server = Bukkit.getServer();
-		Map<String, Location> spawns = this.arena.getSpawnLocation();
+		Map<String, Location> spawns = super.getSpawnLocations();
 		for (Team team : getTeams()) {
 			for (OfflinePlayer offlinePlayer : team.getPlayers()) {
 				Player player = server.getPlayer(offlinePlayer.getUniqueId());
@@ -263,7 +215,7 @@ public class DRColorShooting implements ArenaLogic {
 	}
 	
 	private List<Location> spawnRandomTeamBlocks() {
-		Map<String, Region> regions = this.arena.getRegions();
+		Map<String, Region> regions = super.getRegions();
 		Map<String, List<Location>> locationsPerRegion = new HashMap<String, List<Location>>();
 		List<Location> allLocations = new ArrayList<Location>();
 		for (Team team : getTeams()) {
@@ -304,67 +256,23 @@ public class DRColorShooting implements ArenaLogic {
 		return blockInformations.get(randomIndex);
 	}
 	
-	public boolean stop() {
-		synchronized(this.shouldStopLock) {
-			this.shouldStop = true;
-			this.shouldStopLock.notifyAll();
-		}
-		return true;
-	}
-	
-	public void forceStop() {
-		stop();
-		if (this.thread != null && this.thread.isAlive()) {
-			this.thread.interrupt();
-		}
-	}
-	
-	private void setCurrentThread() {
-		this.thread = Thread.currentThread();
-	}
-	
-	private void finish() {
-		
-		stopTimer();
-		
-		List<Team> teams = getWinningTeamsByOrder();
-		
-		int currentPlace = 1;
-		
-		for (Team team : teams) {
-			
-			giveRewardsToTeam(team, currentPlace);
-			
-		}
-		
-		this.arena.finishGame();
-		
-		reset();
-		
-	}
-	
 	public void command(Player player, String[] args) {
+		super.command(player, args);
 		if (args.length <= 0) {
-			player.sendMessage("Command Not Found! Use /drminigames command [ArenaID] help for help!");
 			return;
 		}
 		
 		String command = args[0];
 		
-		if (command.equalsIgnoreCase("addblock")) {
-			if (args.length < 3 || args.length > 4) {
-				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] addblock [TeamID] [Points] {Block}");
+		if (command.equalsIgnoreCase("add")) {
+			if (args.length < 2) {
+				this.addCommands.commands(player, null, new String[0]);
 				return;
 			}
-			try {
-				int points = Integer.parseInt(args[2]);
-				String block = args.length == 4 ? args[3] : null;
-				addBlock(player, args[1], block, points);
-				player.sendMessage("Successfully Add Block!");
-			} catch (NumberFormatException e) {
-				player.sendMessage("Points should be an integer!");
-				return;
-			}
+			String subCommand = args[1];
+			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
+			this.addCommands.commands(player, subCommand, arguments);
+			return;
 		} else if (command.equalsIgnoreCase("set")) {
 			if (args.length < 2) {
 				this.setCommands.commands(player, null, new String[0]);
@@ -374,106 +282,20 @@ public class DRColorShooting implements ArenaLogic {
 			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
 			this.setCommands.commands(player, subCommand, arguments);
 			return;
-		} else if (command.equalsIgnoreCase("addteams")) {
+		} else if (command.equalsIgnoreCase("remove")) {
 			if (args.length < 2) {
-				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] addteams [TeamID1] [TeamID2] [TeamID3] [TeamID4] ...");
+				this.removeCommands.commands(player, null, new String[0]);
 				return;
 			}
-			for (int i = 1; i < args.length; i++) {
-				if (!addTeam(args[i])) {
-					player.sendMessage("Team " + args[i] + " already exists!");
-					continue;
-				}
-				player.sendMessage("Team " + args[i] + " has been added successfully!");
-			}
-			
-			player.sendMessage("Successfully Add Team " + args[1] + "!");
-		} else if (command.equalsIgnoreCase("removeteams")) {
-			if (args.length < 2) {
-				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] removeteams [TeamID1] [TeamID2] [TeamID3] [TeamID4] ...");
-				return;
-			}
-			for (int i = 1; i < args.length; i++) {
-				if (removeTeam(args[i])) {
-					this.board.getTeam(args[i]).unregister();
-					player.sendMessage("Successfully Removed Team " + args[i] + "!");
-				} else {
-					player.sendMessage("Team " + args[i] + " Didn't Exist!");
-				}
-				continue;
-			}
+			String subCommand = args[1];
+			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
+			this.removeCommands.commands(player, subCommand, arguments);
+			return;
 		} else {
-			player.sendMessage("Command doesn't exist! Use /drminigame command [ArenaID] help for help!");
+//			player.sendMessage("Command doesn't exist! Use /drminigame command [ArenaID] help for help!");
 		}
 	}
 	
-	private void addBlock(Player player, String teamID, String block, int points) {
-		
-		if (!player.hasPermission("drminigames.drcolorshooting.addblock." + this.arena.getID())) {
-			player.sendMessage("You don't have permission to run this command! (drminigames.drcolorshooting.addblock." + this.arena.getID() + ")");
-			return;
-		}
-		
-		if (!containsTeam(teamID)) {
-			player.sendMessage("Team " + teamID + " doesn't exist!");
-		}
-		
-		MaterialData data = null;
-		
-		if (block == null) {
-			
-			ItemStack holdingItem = player.getInventory().getItemInMainHand();
-			
-			if (holdingItem == null) {
-				player.sendMessage("You didn't type block type nor hold a block in your main hand!");
-				return;
-			}
-			
-			data = holdingItem.getData();
-			
-			if (!data.getItemType().isBlock()) {
-				player.sendMessage("You didn't hold a block type item!");
-				return;
-			}
-			
-		} else {
-			
-			String[] materialIDSubID = block.split(":");
-			
-			Material material = null;
-			if (materialIDSubID.length >= 1) {
-				material = Material.matchMaterial(materialIDSubID[0]);
-				
-				if (material == null) {
-					player.sendMessage("Block not found!");
-					return;
-				}
-				
-				if (!material.isBlock()) {
-					player.sendMessage("Not Valid Block!");
-					return;
-				}
-				
-				if (material != null && materialIDSubID.length >= 2) {
-					try {
-						data = new MaterialData(material, Byte.parseByte(materialIDSubID[1]));
-					} catch (NumberFormatException e) {
-						player.sendMessage("Not Valid SubID!");
-						data = new MaterialData(material);
-					}
-				} else {
-					data = new MaterialData(material);
-				}
-			}
-			
-
-			
-		}
-		
-		BlockPointsInformation bi = new BlockPointsInformation(new BlockInformation(data), points);
-		this.teamColorsBlocks.get(teamID).add(bi);
-	}
-		
 	private boolean spawnRandomBlock(String team) {
 		
 		BlockPointsInformation randomBlockInformation = getRandomBlockInformationOfTeam(team);
@@ -482,7 +304,7 @@ public class DRColorShooting implements ArenaLogic {
 			return false;
 		}
 		
-		Region region = this.arena.getRegions().get(team);
+		Region region = super.getRegions().get(team);
 		
 		if (region == null) {
 			return false;
@@ -502,66 +324,6 @@ public class DRColorShooting implements ArenaLogic {
 		
 	}
 	
-	private Scoreboard initializeScoreboard(Collection<String> teams) {
-		
-		ScoreboardManager manager = Bukkit.getScoreboardManager();
-		
-		Scoreboard scoreboard = manager.getNewScoreboard();
-		
-		for (String teamID : teams) {
-			
-			Team team = scoreboard.registerNewTeam(teamID);
-			
-			String prefix;
-			
-			if (this.teamColorsPrefixes.containsKey(teamID)) {
-				
-				prefix = ChatColor.translateAlternateColorCodes('&', this.teamColorsPrefixes.get(teamID));
-				
-			} else {
-				
-				prefix = "[" + teamID + "]";
-				
-			}
-			
-			team.setPrefix(prefix);
-			
-			team.setDisplayName(teamID);
-			
-			team.setCanSeeFriendlyInvisibles(true);
-			
-			team.setAllowFriendlyFire(false);
-			
-		}
-		
-		Objective showScoresObjective = scoreboard.registerNewObjective("showscores", "dummy");
-		
-		showScoresObjective.setDisplayName("Scores:");
-		
-		showScoresObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
-		
-		return scoreboard;
-		
-	}
-	
-	private void setSidebarScoreboardToPlayers() {
-		
-		List<UUID> uuids = this.arena.getPlayers();
-		
-		for (UUID uuid : uuids) {
-			
-			Player player = Bukkit.getPlayer(uuid);
-			
-			if (player != null) {
-				
-				player.setScoreboard(this.board);
-				
-			}
-			
-		}
-		
-	}
-	
 	private List<Team> getWinningTeamsByOrder() {
 		
 		List<Team> teams = new ArrayList<Team>();
@@ -574,8 +336,8 @@ public class DRColorShooting implements ArenaLogic {
 		
 		teams.sort((Team team1, Team team2) -> {
 			
-			Set<Score> team1Scores = this.board.getScores(team1.getName());
-			Set<Score> team2Scores = this.board.getScores(team2.getName());
+			Set<Score> team1Scores = getScores(team1.getName());
+			Set<Score> team2Scores = getScores(team2.getName());
 			
 			if (team1Scores == null || team1Scores.isEmpty() || team2Scores == null || team2Scores.isEmpty()) {
 				
@@ -593,52 +355,8 @@ public class DRColorShooting implements ArenaLogic {
 		return teams;
 		
 	}
-	
-	private void giveRewardsToTeam(Team team, int place) {
-
-		Entry<Integer, List<String>> teamRewardsEntry = this.rewardsCommands.floorEntry(place);
 		
-		if (teamRewardsEntry == null) {
-			return;
-		}
-		
-		List<String> teamRewards = teamRewardsEntry.getValue();
-		
-		if (teamRewards == null) {
-			return;
-		}
-		
-		Set<OfflinePlayer> players = team.getPlayers();
-		
-		if (players == null) {
-			return;
-		}
-		
-		for (OfflinePlayer offlinePlayer : players) {
-			
-			Player player = Bukkit.getPlayer(offlinePlayer.getUniqueId());
-			
-			if (player == null) {
-				continue;
-			}
-			
-			for (String command : teamRewards) {
-				Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), command.replaceAll("<player>", player.getName()));
-			}
-			
-		}
-		
-	}
-	
 	public void reset() {
-		
-		if (this.board.getObjective("showscores") == null) {
-			this.board = initializeScoreboard(new ArrayList<String>());
-		}
-		
-		for (String entry : this.board.getEntries()) {
-			this.board.resetScores(entry);
-		}
 		
 		resetSynchronized();
 		
@@ -655,55 +373,6 @@ public class DRColorShooting implements ArenaLogic {
 		
 	}
 	
-	private void preStartInitialize() {
-		
-		Objective showScores = this.board.getObjective("showscores");
-		
-		for (Team team : this.board.getTeams()) {
-			Score score = showScores.getScore(team.getName());
-			score.setScore(0);
-		}
-		
-	}
-	
-	private Set<Team> getTeams() {
-		if (this.board == null) {
-			this.board = initializeScoreboard(new ArrayList<String>());
-		}
-		return this.board.getTeams();
-	}
-	
-	public boolean containsTeam(String name) {
-		return this.board.getTeam(name) != null;
-	}
-	
-	private boolean addTeam(String name) {
-		if (containsTeam(name)) {
-			return false;
-		}
-		this.board.registerNewTeam(name);
-		this.teamColorsBlocks.put(name, new ArrayList<BlockPointsInformation>());
-		return true;
-	}
-	
-	private boolean removeTeam(String name) {
-		if (!containsTeam(name)) {
-			return false;
-		}
-		this.board.getTeam(name).unregister();
-		this.teamColorsBlocks.remove(name);
-		return true;
-	}
-	
-	public boolean addPrefixToTeam(String teamID, String prefix) {
-		boolean returnValue = false;
-		if (this.teamColorsPrefixes.containsKey(teamID)) {
-			returnValue = true;
-		}
-		this.teamColorsPrefixes.put(teamID, prefix);
-		return returnValue;
-	}
-	
 	public void setNumOfBlocksPerTeam(int num) throws ArgumentOutOfBoundsException {
 		if (num <= 0) {
 			throw new ArgumentOutOfBoundsException();
@@ -711,94 +380,36 @@ public class DRColorShooting implements ArenaLogic {
 		this.numOfBlocksPerTeam = num;
 	}
 	
-	private int runSyncStartTasks() {
-		return Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), new Runnable() {
-			@Override
-			public void run() {
-				setCurrentThread();
-				preStartInitialize();
-				setTeamsToPlayers();
-				teleportPlayersToArena();
-				spawnedBlocks = spawnRandomTeamBlocks();
-				setSidebarScoreboardToPlayers();
-				
-			}
-		});
-	}
-	
-	public void setTimeForGame(long time) throws ArgumentOutOfBoundsException {
-		if (time <= 0) {
-			throw new ArgumentOutOfBoundsException();
-		}
-		this.timer.setTime(time);
-	}
-	
-	private void stopTimer() {
-		this.timer.stopTimer();
-	}
-	
-	private void onTimeUpdated(final long time) {
-		if (time <= 0) {
-			stop();
-		} else {
-			final long timeInSecs = time / 1000;
-			Bukkit.getScheduler().scheduleSyncDelayedTask(DRMinigames.getPlugin(DRMinigames.class), () -> {
-				for (Team team : getTeams()) {
-					for (OfflinePlayer player : team.getPlayers()) {
-						Player p = player.getPlayer();
-						if (p == null) {
-							continue;
-						}
-						if (time > Integer.MAX_VALUE) {
-							p.setTotalExperience(Integer.MAX_VALUE);
-						}
-						p.setTotalExperience((int)time);
-					}
-				}
-			});
-
-		}
-	}
-
 	@Override
 	public Map<String, Object> serialize() {
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("id", arena.getID());
+		Map<String, Object> map = super.serialize();
 		map.put("teamBlocks", teamColorsBlocks);
 		map.put("numOfBlocksPerTeam", numOfBlocksPerTeam);
-		map.put("teamColorsPrefixes", teamColorsPrefixes);
-		map.put("rewardsCommands", rewardsCommands.entrySet().stream().map((Entry<Integer, List<String>> entry) -> {
-			return new AbstractMap.SimpleEntry<String, List<String>>(entry.getKey().toString(), entry.getValue());
-		}).collect(Collectors.toMap((Entry::getKey), Entry::getValue)));
 		return map;
 	}
 	
 	public static DRColorShooting deserialize(Map<String, Object> map) {
-		if (!map.containsKey("id")) {
-			return null;
-		}
-		Arena arena = ArenasManager.getInstance().getArena((String)map.get("id"));
-		DRColorShooting arenaLogic = new DRColorShooting(ArenasManager.getInstance().getArena((String)map.get("id")));
-		if (arenaLogic.arena == null) {
+		DRColorShooting arenaLogic = (DRColorShooting)TeamsArenaLogic.deserialize(map, new DRColorShootingFactory());
+		if (arenaLogic == null) {
 			return null;
 		}
 		if (map.get("teamBlocks") != null && map.get("teamBlocks") instanceof Map<?, ?>) {
-			arenaLogic.board = arenaLogic.initializeScoreboard(((Map<String, List<BlockPointsInformation>>)map.get("teamBlocks")).keySet());
 			arenaLogic.teamColorsBlocks = (Map<String, List<BlockPointsInformation>>)map.get("teamBlocks");
 		}
 		if (map.get("numOfBlocksPerTeam") != null && map.get("numOfBlocksPerTeam") instanceof Integer) {
 			arenaLogic.numOfBlocksPerTeam = (Integer)map.get("numOfBlocksPerTeam");
 		}
-		if (map.get("teamColorsPrefixes") != null && map.get("teamColorsPrefixes") instanceof Map<?, ?>) {
-			arenaLogic.teamColorsPrefixes = (Map<String, String>)map.get("teamColorsPrefixes");
-		}
-		if (map.get("rewardsCommands") != null && map.get("rewardsCommands") instanceof Map<?, ?>) {
-			Map<String, List<String>> rewardsCommandsStringMap = (Map<String, List<String>>)map.get("rewardsCommands");
-			arenaLogic.rewardsCommands = new TreeMap<>(rewardsCommandsStringMap.entrySet().stream().map((Entry<String, List<String>> entry) -> {
-				return new AbstractMap.SimpleEntry<>(Integer.parseInt(entry.getKey()), entry.getValue());
-			}).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
-		}
 		return arenaLogic;
+	}
+	
+	public void addBlockPointsInformationToTeam(BlockPointsInformation bpi, String teamID) {
+		this.teamColorsBlocks.get(teamID).add(bpi);
+	}
+	
+	@Override
+	public void onSyncStart() {
+		super.onSyncStart();
+		spawnedBlocks = spawnRandomTeamBlocks();
 	}
 		
 }

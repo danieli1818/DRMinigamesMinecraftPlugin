@@ -1,8 +1,12 @@
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\subcommands\RemoveCommands.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\BlockInformation.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\RandomWeightedList.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\ArenasLogicsManager.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\resources\api\arena\events\Event.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\TeamsArenaLogicFactory.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\configurationserializables\Timer.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\DRColorShootingFactory.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\subcommands\AddCommands.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\BaseArena.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\resources\api\ArenaLogic.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\BlockPointsInformation.java
@@ -10,10 +14,13 @@ C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\RegionUtils.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\configurationserializables\maps\ConfigurationSerializableMap.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\listeners\MinigamesEventsListener.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\subcommands\AddCommands.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\exceptions\InvalidConfigurationDataException.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\TextScoreboard.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\ArenasManager.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\subcommands\RemoveCommands.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\exceptions\ArgumentOutOfBoundsException.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\TeamsArenaLogic.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\SavingAndLoadingUtils.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\kits\KitsManager.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\resources\api\DRMinigamePlugin.java
@@ -26,3 +33,5 @@ C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\configurationserializables\collections\lists\ConfigurationSerializableList.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\configurationserializables\collections\ConfigurationSerializableCollection.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\resources\api\arena\events\JoinEvent.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\subcommands\SetCommands.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\resources\api\ArenaLogicFactory.java
