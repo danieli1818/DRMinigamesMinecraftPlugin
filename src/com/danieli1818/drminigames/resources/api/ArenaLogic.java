@@ -27,6 +27,6 @@ public interface ArenaLogic extends Observer, ConfigurationSerializable {
 	
 	public void forceStop();
 	
-	public void command(Player player, String[] args);
+	public boolean command(Player player, String[] args);
 	
 }

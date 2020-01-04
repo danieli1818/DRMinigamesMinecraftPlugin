@@ -81,4 +81,6 @@ public interface Arena extends ConfigurationSerializable {
 	
 	public void finishGame();
 	
+	public boolean isLoading();
+	
 }

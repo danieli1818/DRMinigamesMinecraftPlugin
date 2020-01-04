@@ -73,6 +73,7 @@ public class BaseArena extends Observable implements Arena {
 	
 	private enum GameState {
 		UNAVAILABLE,
+		LOADING,
 		WAITING,
 		COUNTDOWN,
 		RUNNING
@@ -102,10 +103,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean addPlayer(UUID id) {
-		if (getPlayers().contains(id)) {
-			return false;
-		}
-		if (this.state == GameState.RUNNING || this.state == GameState.UNAVAILABLE) {
+		if (!canAddPlayer(id)) {
 			return false;
 		}
 		Player p = Bukkit.getPlayer(id);
@@ -120,6 +118,13 @@ public class BaseArena extends Observable implements Arena {
 			this.countdownTimer.start();
 		}
 		return true;
+	}
+	
+	private boolean canAddPlayer(UUID id) {
+		if (getPlayers().size() >= this.maxNumPlayers || getPlayers().contains(id)) {
+			return false;
+		}
+		return this.state == GameState.WAITING || this.state == GameState.COUNTDOWN;
 	}
 	
 	public boolean removePlayer(UUID id) {
@@ -143,16 +148,18 @@ public class BaseArena extends Observable implements Arena {
 	
 	public void reset() {
 		kickAllPlayers();
-		if (this.state != GameState.UNAVAILABLE) {
+		if (this.state != GameState.UNAVAILABLE && this.state != GameState.LOADING) {
 			if (this.state == GameState.COUNTDOWN) {
 				this.countdownTimer.stopTimer();
 			}
 			this.state = GameState.WAITING;
+		} else {
+			this.state = GameState.UNAVAILABLE;
 		}
 	}
 	
 	public boolean isAvailable() {
-		return this.state != GameState.UNAVAILABLE;
+		return this.state != GameState.UNAVAILABLE && this.state != GameState.LOADING;
 	}
 	
 	public boolean setAvailable() {
@@ -535,7 +542,7 @@ public class BaseArena extends Observable implements Arena {
 			return "Countdown";
 		} else if (this.state == GameState.RUNNING) {
 			return "Running";
-		} else if (this.state == GameState.UNAVAILABLE) {
+		} else if (this.state == GameState.UNAVAILABLE || this.state == GameState.LOADING) {
 			return "Unavailable";
 		} else {
 			return "Waiting";
@@ -684,6 +691,7 @@ public class BaseArena extends Observable implements Arena {
 		if (map.containsKey("isAvailable")) {
 			if (map.get("isAvailable") != null && map.get("isAvailable") instanceof Boolean) {
 				if ((Boolean)map.get("isAvailable")) {
+					arena.state = GameState.LOADING;
 					arena.setAvailable();
 				}
 			}
@@ -703,6 +711,10 @@ public class BaseArena extends Observable implements Arena {
 		for (Entry<String, String> entry : map.entrySet()) {
 			this.regions.put(entry.getKey(), regionFromString(entry.getValue()));
 		}
+	}
+	
+	public boolean isLoading() {
+		return this.state == GameState.LOADING;
 	}
 	
 }

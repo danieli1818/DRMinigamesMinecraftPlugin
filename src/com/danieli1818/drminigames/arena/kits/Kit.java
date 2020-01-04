@@ -2,10 +2,14 @@ package com.danieli1818.drminigames.arena.kits;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 
-public class Kit {
+import com.danieli1818.drminigames.utils.SavingAndLoadingUtils;
+
+public class Kit implements ConfigurationSerializable {
 	
 	private Map<Integer, ItemStack> items;
 	
@@ -50,6 +54,26 @@ public class Kit {
 	
 	public String getID() {
 		return this.id;
+	}
+
+	@Override
+	public Map<String, Object> serialize() {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("items", SavingAndLoadingUtils.stringify(this.items));
+		map.put("id", this.id);
+		map.put("name", this.name);
+		return map;
+	}
+	
+	public static Kit deserialize(Map<String, Object> map) {
+		if (map.get("id") == null || !(map.get("id") instanceof String) || map.get("name") == null || !(map.get("name") instanceof String)) {
+			return null;
+		}
+		Kit kit = new Kit((String)map.get("name"), (String)map.get("id"));
+		if (map.get("items") == null && map.get("items") instanceof Map<?, ?>) {
+			kit.items = SavingAndLoadingUtils.integerify((Map<String, ItemStack>)map.get("items"));
+		}
+		return kit;
 	}
 
 }

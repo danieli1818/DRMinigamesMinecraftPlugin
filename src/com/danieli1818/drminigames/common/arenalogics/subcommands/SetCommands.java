@@ -12,16 +12,18 @@ public class SetCommands {
 		this.arenaLogic = arenaLogic;
 	}
 	
-	public void commands(Player player, String subCommand, String[] args) {
+	public boolean commands(Player player, String subCommand, String[] args) {
 		
 		if (subCommand == null) {
 			helpCommand(player, 1);
+			return true;
 		} else if (subCommand.equalsIgnoreCase("prefix")) {
 			if (args.length != 3) {
 				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] set prefix [TeamID] [Prefix]");
-				return;
+				return true;
 			}
 			setPrefix(player, args[1], args[2]);
+			return true;
 		} else if (subCommand.equalsIgnoreCase("help")) {
 			if (args.length != 2) {
 				helpCommand(player, 1);
@@ -33,13 +35,15 @@ public class SetCommands {
 					player.sendMessage("Invalid Syntax! Not Valid Number!");
 				}
 			}
+			return true;
 		} else if (subCommand.equalsIgnoreCase("timeForGame")) {
 			if (args.length != 2) {
 				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] set timeForGame [Time In Seconds]");
 			}
 			setTimeForGame(player, args[1]);
+			return true;
 		} else {
-			helpCommand(player, 1);
+			return false;
 		}
 
 		

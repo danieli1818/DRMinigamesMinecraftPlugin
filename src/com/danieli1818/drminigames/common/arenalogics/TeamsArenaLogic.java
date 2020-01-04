@@ -225,43 +225,37 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		
 	}
 	
-	public void command(Player player, String[] args) {
+	public boolean command(Player player, String[] args) {
 		if (args.length <= 0) {
 			player.sendMessage("Command Not Found! Use /drminigames command [ArenaID] help for help!");
-			return;
+			return true;
 		}
 		
 		String command = args[0];
 		
 		if (command.equalsIgnoreCase("add")) {
 			if (args.length < 2) {
-				this.addCommands.commands(player, null, new String[0]);
-				return;
+				return this.addCommands.commands(player, null, new String[0]);
 			}
 			String subCommand = args[1];
 			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-			this.addCommands.commands(player, subCommand, arguments);
-			return;
+			return this.addCommands.commands(player, subCommand, arguments);
 		} else if (command.equalsIgnoreCase("set")) {
 			if (args.length < 2) {
-				this.setCommands.commands(player, null, new String[0]);
-				return;
+				return this.setCommands.commands(player, null, new String[0]);
 			}
 			String subCommand = args[1];
 			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-			this.setCommands.commands(player, subCommand, arguments);
-			return;
+			return this.setCommands.commands(player, subCommand, arguments);
 		} else if (command.equalsIgnoreCase("remove")) {
 			if (args.length < 2) {
-				this.removeCommands.commands(player, null, new String[0]);
-				return;
+				return this.removeCommands.commands(player, null, new String[0]);
 			}
 			String subCommand = args[1];
 			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-			this.removeCommands.commands(player, subCommand, arguments);
-			return;
+			return this.removeCommands.commands(player, subCommand, arguments);
 		} else {
-			player.sendMessage("Command doesn't exist! Use /drminigame command [ArenaID] help for help!");
+			return false;
 		}
 	}
 	
@@ -588,6 +582,28 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 	
 	private List<String> getTeamsNames() {
 		return getTeams().stream().map((Team team) -> team.getName()).collect(Collectors.toList());
+	}
+	
+	public void addRewardCommand(int place, String command) {
+		List<String> rewardsCommands = this.rewardsCommands.get(place);
+		if (rewardsCommands == null) {
+			rewardsCommands = new ArrayList<String>();
+		}
+		rewardsCommands.add(command);
+		this.rewardsCommands.put(place, rewardsCommands);
+	}
+	
+	public boolean removeRewardCommand(int place, String command) {
+		List<String> rewardsCommands = this.rewardsCommands.get(place);
+		if (rewardsCommands == null || !rewardsCommands.contains(command)) {
+			return false;
+		}
+		rewardsCommands.remove(command);
+		return true;
+	}
+	
+	public void clearRewardsCommands(int place) {
+		this.rewardsCommands.remove(place);
 	}
 	
 }

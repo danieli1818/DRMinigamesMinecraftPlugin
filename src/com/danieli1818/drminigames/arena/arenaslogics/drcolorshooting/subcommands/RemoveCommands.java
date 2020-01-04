@@ -12,19 +12,24 @@ public class RemoveCommands {
 		this.arenaLogic = arenaLogic;
 	}
 	
-	public void commands(Player player, String subCommand, String[] args) {
+	public boolean commands(Player player, String subCommand, String[] args) {
 		if (subCommand == null) {
 			helpCommand(player, 1);
+			return true;
 		} else if (subCommand.equalsIgnoreCase("teams")) {
 			if (args.length < 2) {
 				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] remove teams [TeamID1] [TeamID2] [TeamID3] [TeamID4] ...");
-				return;
+				return true;
 			}
 			for (int i = 1; i < args.length; i++) {
 				if (!removeTeam(player, args[i])) {
 					continue;
 				}
 			}
+			return true;
+		} else {
+			System.out.println("Invalid Command! For Help Type: /drminigames command [ArenaID] remove help!");
+			return false;
 		}
 	}
 	

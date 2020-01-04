@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.inventory.ItemStack;
 
 import com.danieli1818.drminigames.arena.BaseArena;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.BlockPointsInformation;
@@ -85,6 +87,22 @@ public class SavingAndLoadingUtils {
 		ConfigurationSerialization.unregisterClass(Timer.class);
 		ConfigurationSerialization.unregisterClass(BlockInformation.class);
 		ConfigurationSerialization.unregisterClass(BlockPointsInformation.class);
+	}
+	
+	public static Map<String, ConfigurationSerializable> stringify(Map<Integer, ? extends ConfigurationSerializable> map) {
+		Map<String, ConfigurationSerializable> returnMap = new HashMap<String, ConfigurationSerializable>();
+		for (Entry<Integer, ? extends ConfigurationSerializable> entry : map.entrySet()) {
+			returnMap.put(String.valueOf(entry.getKey()), entry.getValue());
+		}
+		return returnMap;
+	}
+	
+	public static <T> Map<Integer, T> integerify(Map<String, T> map) {
+		Map<Integer, T> returnMap = new HashMap<Integer, T>();
+		for (Entry<String, T> entry : map.entrySet()) {
+			returnMap.put(Integer.parseInt(entry.getKey()), entry.getValue());
+		}
+		return returnMap;
 	}
 	
 }

@@ -169,6 +169,9 @@ public class ArenasManager {
 	public void loadArenasLogics() {
 		for (Arena arena : this.arenas.values()) {
 			arena.setType(ArenasLogicsManager.loadArenaLogic(arena));
+			if (arena.isLoading()) {
+				arena.setAvailable();
+			}
 		}
 	}
 

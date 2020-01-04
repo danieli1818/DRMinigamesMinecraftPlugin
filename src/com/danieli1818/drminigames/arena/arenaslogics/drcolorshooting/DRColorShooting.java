@@ -256,43 +256,41 @@ public class DRColorShooting extends TeamsArenaLogic implements ArenaLogic {
 		return blockInformations.get(randomIndex);
 	}
 	
-	public void command(Player player, String[] args) {
-		super.command(player, args);
+	public boolean command(Player player, String[] args) {
+		boolean flag = super.command(player, args);
 		if (args.length <= 0) {
-			return;
+			return false;
 		}
 		
 		String command = args[0];
 		
 		if (command.equalsIgnoreCase("add")) {
 			if (args.length < 2) {
-				this.addCommands.commands(player, null, new String[0]);
-				return;
+				return this.addCommands.commands(player, null, new String[0]);
 			}
 			String subCommand = args[1];
 			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-			this.addCommands.commands(player, subCommand, arguments);
-			return;
+			return this.addCommands.commands(player, subCommand, arguments);
 		} else if (command.equalsIgnoreCase("set")) {
 			if (args.length < 2) {
-				this.setCommands.commands(player, null, new String[0]);
-				return;
+				return this.setCommands.commands(player, null, new String[0]);
 			}
 			String subCommand = args[1];
 			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-			this.setCommands.commands(player, subCommand, arguments);
-			return;
+			return this.setCommands.commands(player, subCommand, arguments);
 		} else if (command.equalsIgnoreCase("remove")) {
 			if (args.length < 2) {
-				this.removeCommands.commands(player, null, new String[0]);
-				return;
+				return this.removeCommands.commands(player, null, new String[0]);
 			}
 			String subCommand = args[1];
 			String[] arguments = Arrays.copyOfRange(args, 1, args.length);
-			this.removeCommands.commands(player, subCommand, arguments);
-			return;
+			return this.removeCommands.commands(player, subCommand, arguments);
 		} else {
-//			player.sendMessage("Command doesn't exist! Use /drminigame command [ArenaID] help for help!");
+			if (!flag) {
+				player.sendMessage("Command doesn't exist! Use /drminigame command [ArenaID] help for help!");
+				return false;
+			}
+			return true;
 		}
 	}
 	
