@@ -477,7 +477,7 @@ public class BaseArena extends Observable implements Arena {
 		String[] kitsIDs = kitListString.split(", ");
 		ArrayList<Kit> kits = new ArrayList<Kit>();
 		for (String kitID : kitsIDs) {
-			kits.add(KitsManager.loadKit(kitID));
+			kits.add(KitsManager.getInstance().loadKit(kitID));
 		}
 		return kits;
 	}

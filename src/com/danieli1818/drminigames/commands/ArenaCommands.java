@@ -29,6 +29,8 @@ import com.sk89q.worldedit.world.World;
 public class ArenaCommands implements CommandExecutor {
 	
 	private static WorldEditPlugin wep = (WorldEditPlugin)Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
+	
+	private static KitsCommands kitsCommands = new KitsCommands("DRMinigames");
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -179,6 +181,12 @@ public class ArenaCommands implements CommandExecutor {
 				arguments[i - 2] = args[i];
 			}
 			return sendCommandToArena(p, args[1], arguments);
+		} else if (args[0].equalsIgnoreCase("kit") || args[0].equalsIgnoreCase("kits")) {
+			String[] arguments = new String[args.length - 1];
+			for (int i = 1; i < args.length; i++) {
+				arguments[i - 1] = args[i];
+			}
+			return this.kitsCommands.onCommand(sender, args[0], arguments);
 		}
 		else {
 			sender.sendMessage("Invalid Command!");

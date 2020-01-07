@@ -15,6 +15,7 @@ import com.danieli1818.drminigames.commands.ArenaCommands;
 import com.danieli1818.drminigames.listeners.MinigamesEventsListener;
 import com.danieli1818.drminigames.utils.ArenasManager;
 import com.danieli1818.drminigames.utils.SavingAndLoadingUtils;
+import com.danieli1818.drminigames.utils.guis.GUIListener;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public final class DRMinigames extends JavaPlugin {
@@ -51,6 +52,8 @@ public final class DRMinigames extends JavaPlugin {
 		getCommand("drminigames").setExecutor(new ArenaCommands());
 		
 		getServer().getPluginManager().registerEvents(new MinigamesEventsListener(), this);
+		
+		getServer().getPluginManager().registerEvents(new GUIListener(), this);
 		
 		System.out.println("plugin has successfully loaded!!!!");
 		
