@@ -27,6 +27,7 @@ import org.bukkit.util.BlockVector;
 
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.kits.Kit;
+import com.danieli1818.drminigames.arena.kits.KitIcon;
 import com.danieli1818.drminigames.arena.kits.KitsManager;
 import com.danieli1818.drminigames.common.TextScoreboard;
 import com.danieli1818.drminigames.common.configurationserializables.Timer;
@@ -35,6 +36,7 @@ import com.danieli1818.drminigames.common.exceptions.InvalidConfigurationDataExc
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.resources.api.arena.events.JoinEvent;
+import com.danieli1818.drminigames.utils.guis.GUIHolder;
 //import com.danieli1818.drminigames.api.Arena;
 //import com.danieli1818.drminigames.api.ArenaLogic;
 //import com.danieli1818.drminigames.api.arena.events.JoinEvent;
@@ -69,7 +71,7 @@ public class BaseArena extends Observable implements Arena {
 	
 	private Timer countdownTimer;
 	
-	
+	private GUIHolder guiHolder;
 	
 	private enum GameState {
 		UNAVAILABLE,
@@ -95,6 +97,7 @@ public class BaseArena extends Observable implements Arena {
 		this.countdownTimer.setTask((Long time) -> {
 			onTimeUpdated(time);
 		});
+		initializeGUIHolder();
 		reset();
 	}
 	
@@ -117,6 +120,7 @@ public class BaseArena extends Observable implements Arena {
 			updateScoreboard(null);
 			this.countdownTimer.start();
 		}
+		p.openInventory(this.guiHolder.getInventory());
 		return true;
 	}
 	
@@ -156,6 +160,7 @@ public class BaseArena extends Observable implements Arena {
 		} else {
 			this.state = GameState.UNAVAILABLE;
 		}
+		resetGUIHolder();
 	}
 	
 	public boolean isAvailable() {
@@ -346,20 +351,26 @@ public class BaseArena extends Observable implements Arena {
 
 	@Override
 	public void addKit(Kit kit) {
+		if (kit == null) {
+			return;
+		}
 		this.kits.add(kit);
-		
+		resetGUIHolder();
 	}
 
 	@Override
 	public void removeKit(Kit kit) {
+		if (kit == null) {
+			return;
+		}
 		this.kits.remove(kit);
-		
+		resetGUIHolder();
 	}
 
 	@Override
 	public void removeAllKits() {
 		this.kits.clear();
-		
+		resetGUIHolder();
 	}
 	
 	private String locationMapToString(Map<String, Location> locationsMap) {
@@ -697,6 +708,8 @@ public class BaseArena extends Observable implements Arena {
 			}
 		}
 		
+		arena.initializeGUIHolder();
+		
 		return arena;
 	}
 	
@@ -715,6 +728,26 @@ public class BaseArena extends Observable implements Arena {
 	
 	public boolean isLoading() {
 		return this.state == GameState.LOADING;
+	}
+	
+	private void initializeGUIHolder() {
+		this.guiHolder = new GUIHolder(36, "kits");
+		int i = 0;
+		for (Kit kit : this.kits) {
+			System.out.println("Adding Icon!");
+			this.guiHolder.addIcon(new KitIcon(kit));
+			System.out.println("Finished Adding Icon!");
+			i++;
+		}
+	}
+	
+	private void resetGUIHolder() {
+		this.guiHolder.clearIcons();
+		int i = 0;
+		for (Kit kit : this.kits) {
+			this.guiHolder.addIcon(new KitIcon(kit));
+			i++;
+		}
 	}
 	
 }

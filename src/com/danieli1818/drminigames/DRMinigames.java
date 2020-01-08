@@ -39,6 +39,8 @@ public final class DRMinigames extends JavaPlugin {
 		
 		SavingAndLoadingUtils.registerConfigurationSerializables();
 		
+		createKitsConfigs();
+		
 		createArenasConfigs();
 		
 		ArenasManager.getInstance().reloadArenas();
@@ -46,8 +48,6 @@ public final class DRMinigames extends JavaPlugin {
 		createArenasLogicsConfigs();
 		
 		ArenasManager.getInstance().loadArenasLogics();
-		
-		createKitsConfigs();
 		
 		getCommand("drminigames").setExecutor(new ArenaCommands());
 		
@@ -96,7 +96,7 @@ public final class DRMinigames extends JavaPlugin {
 	
 	private void createKitsConfigs() {
 		
-		AbstractMap.Entry<File, FileConfiguration> kitsConfigs = createConfigurationFile("arenas.yml");
+		AbstractMap.Entry<File, FileConfiguration> kitsConfigs = createConfigurationFile("kits.yml");
 		this.kitsConfigFile = kitsConfigs.getKey();
 		this.kitsConfig = kitsConfigs.getValue();
 		

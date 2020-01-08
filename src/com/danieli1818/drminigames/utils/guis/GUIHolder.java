@@ -38,10 +38,21 @@ public class GUIHolder implements InventoryHolder {
 		this.icons.clear();
 		return this;
 	}
+	
+	public boolean addIcon(Icon icon) {
+		for (int i = 0; i <= this.size; i++) {
+			if (this.icons.get(i) == null) {
+				this.icons.put(i, icon);
+				return true;
+			}
+		}
+		return false;
+	}
 
 	@Override
 	public Inventory getInventory() {
 		Inventory inventory = Bukkit.createInventory(this, this.size, this.title);
+		
 		
 		for (Entry<Integer, Icon> entry : this.icons.entrySet()) {
 			inventory.setItem(entry.getKey(), entry.getValue().getItemStack());

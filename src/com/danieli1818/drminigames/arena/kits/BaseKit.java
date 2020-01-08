@@ -21,6 +21,8 @@ public class BaseKit implements Kit {
 	
 	private String id;
 	
+	private ItemStack symbol;
+	
 	public BaseKit(String name, String id) {
 		this.items = new HashMap<Integer, ItemStack>();
 		this.name = name;
@@ -43,12 +45,14 @@ public class BaseKit implements Kit {
 		this.items.put(slot, item);
 	}
 	
-	public void addItem(ItemStack item) {
+	public boolean addItem(ItemStack item) {
 		for (int i = 0; i < this.numOfSlots; i++) {
 			if (!this.items.containsKey(i)) {
 				this.items.put(i, item);
+				return true;
 			}
 		}
+		return false;
 	}
 	
 	public void removeItem(int slot) {
@@ -73,6 +77,7 @@ public class BaseKit implements Kit {
 		map.put("items", SavingAndLoadingUtils.stringify(this.items));
 		map.put("id", this.id);
 		map.put("name", this.name);
+		map.put("symbol", this.symbol);
 		return map;
 	}
 	
@@ -81,8 +86,11 @@ public class BaseKit implements Kit {
 			return null;
 		}
 		BaseKit kit = new BaseKit((String)map.get("name"), (String)map.get("id"));
-		if (map.get("items") == null && map.get("items") instanceof Map<?, ?>) {
+		if (map.get("items") != null && map.get("items") instanceof Map<?, ?>) {
 			kit.items = SavingAndLoadingUtils.integerify((Map<String, ItemStack>)map.get("items"));
+		}
+		if (map.get("symbol") != null && map.get("symbol") instanceof ItemStack) {
+			kit.symbol = (ItemStack)map.get("symbol");
 		}
 		return kit;
 	}
@@ -98,6 +106,16 @@ public class BaseKit implements Kit {
 			inventory.setItem(entry.getKey(), entry.getValue());
 		}
 		
+	}
+
+	@Override
+	public ItemStack getSymbol() {
+		return this.symbol;
+	}
+	
+	@Override
+	public void setSymbol(ItemStack symbol) {
+		this.symbol = symbol;
 	}
 
 }

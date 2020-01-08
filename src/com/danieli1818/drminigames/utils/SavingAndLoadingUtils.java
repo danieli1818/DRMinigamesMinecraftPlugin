@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import com.danieli1818.drminigames.arena.BaseArena;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.BlockPointsInformation;
 import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.DRColorShooting;
+import com.danieli1818.drminigames.arena.kits.BaseKit;
 import com.danieli1818.drminigames.common.BlockInformation;
 import com.danieli1818.drminigames.common.configurationserializables.Timer;
 import com.danieli1818.drminigames.resources.api.Arena;
@@ -77,6 +78,7 @@ public class SavingAndLoadingUtils {
 		ConfigurationSerialization.registerClass(Timer.class);
 		ConfigurationSerialization.registerClass(BlockInformation.class);
 		ConfigurationSerialization.registerClass(BlockPointsInformation.class);
+		ConfigurationSerialization.registerClass(BaseKit.class);
 	}
 	
 	public static void unregisterConfigurationSerializables() {
@@ -87,6 +89,7 @@ public class SavingAndLoadingUtils {
 		ConfigurationSerialization.unregisterClass(Timer.class);
 		ConfigurationSerialization.unregisterClass(BlockInformation.class);
 		ConfigurationSerialization.unregisterClass(BlockPointsInformation.class);
+		ConfigurationSerialization.unregisterClass(BaseKit.class);
 	}
 	
 	public static Map<String, ConfigurationSerializable> stringify(Map<Integer, ? extends ConfigurationSerializable> map) {
