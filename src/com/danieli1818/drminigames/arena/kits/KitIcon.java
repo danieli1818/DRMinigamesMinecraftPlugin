@@ -6,6 +6,8 @@ import java.util.List;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.danieli1818.drminigames.resources.api.Arena;
+import com.danieli1818.drminigames.utils.ArenasManager;
 import com.danieli1818.drminigames.utils.guis.ClickAction;
 import com.danieli1818.drminigames.utils.guis.Icon;
 
@@ -22,7 +24,14 @@ public class KitIcon implements Icon {
 			
 			@Override
 			public void execute(Player player) {
-				kit.giveToPlayer(player);
+				
+				Arena arena = ArenasManager.getInstance().getArena(player.getUniqueId());
+				
+				if (arena == null) {
+					return;
+				}
+				
+				arena.selectKitForPlayer(kit, player);
 				
 			}
 		});

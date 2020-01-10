@@ -16,10 +16,12 @@ import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -37,6 +39,8 @@ import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.resources.api.arena.events.JoinEvent;
 import com.danieli1818.drminigames.utils.guis.GUIHolder;
+import com.danieli1818.drminigames.utils.items.Action;
+import com.danieli1818.drminigames.utils.items.CustomItemStack;
 //import com.danieli1818.drminigames.api.Arena;
 //import com.danieli1818.drminigames.api.ArenaLogic;
 //import com.danieli1818.drminigames.api.arena.events.JoinEvent;
@@ -73,6 +77,8 @@ public class BaseArena extends Observable implements Arena {
 	
 	private GUIHolder guiHolder;
 	
+	private Map<UUID, Kit> currentPlayersKits;
+	
 	private enum GameState {
 		UNAVAILABLE,
 		LOADING,
@@ -98,6 +104,7 @@ public class BaseArena extends Observable implements Arena {
 			onTimeUpdated(time);
 		});
 		initializeGUIHolder();
+		this.currentPlayersKits = new HashMap<>();
 		reset();
 	}
 	
@@ -120,7 +127,7 @@ public class BaseArena extends Observable implements Arena {
 			updateScoreboard(null);
 			this.countdownTimer.start();
 		}
-		p.openInventory(this.guiHolder.getInventory());
+		givePlayerWaitingItems(p);
 		return true;
 	}
 	
@@ -131,6 +138,7 @@ public class BaseArena extends Observable implements Arena {
 		return this.state == GameState.WAITING || this.state == GameState.COUNTDOWN;
 	}
 	
+	@Override
 	public boolean removePlayer(UUID id) {
 		if (!getPlayers().contains(id)) {
 			return false;
@@ -589,10 +597,15 @@ public class BaseArena extends Observable implements Arena {
 	private void onTimeUpdated(long time) {
 		if (time <= 0) {
 			this.state = GameState.RUNNING;
+			onStart();
 			al.start(this);
 		} else {
 			updateScoreboard(time);
 		}
+	}
+	
+	private void onStart() {
+		giveKitsToPlayers();
 	}
 
 	@Override
@@ -748,6 +761,58 @@ public class BaseArena extends Observable implements Arena {
 			this.guiHolder.addIcon(new KitIcon(kit));
 			i++;
 		}
+	}
+	
+	private void givePlayerWaitingItems(Player player) {
+		ItemStack kitsItemStack = new CustomItemStack(new ItemStack(Material.COMPASS)).setType("Kits Menu").getItemStack();
+		ItemStack leaveItemStack = new CustomItemStack(new ItemStack(Material.BARRIER)).setType("Leave").getItemStack();
+		player.getInventory().clear();
+		player.getInventory().setItem(0, kitsItemStack);
+		player.getInventory().setItem(8, leaveItemStack);
+	}
+	
+	@Override
+	public void openKits(Player player) {
+		
+		player.openInventory(this.guiHolder.getInventory());
+		
+	}
+	
+	@Override
+	public void selectKitForPlayer(Kit kit, Player player) {
+		
+		this.currentPlayersKits.put(player.getUniqueId(), kit);
+		
+	}
+	
+	private void giveKitsToPlayers() {
+		
+		for (UUID uuid : getPlayers()) {
+			
+			Kit kit = this.currentPlayersKits.get(uuid);
+			
+			if (kit == null && !this.kits.isEmpty()) {
+				
+				kit = this.kits.get(0);
+				
+			}
+			
+			Player player = Bukkit.getPlayer(uuid);
+			
+			if (player == null) {
+				continue;
+			}
+			
+			player.getInventory().clear();
+			
+			if (kit != null) {
+				
+				kit.giveToPlayer(player);
+				
+			}
+			
+		}
+		
 	}
 	
 }

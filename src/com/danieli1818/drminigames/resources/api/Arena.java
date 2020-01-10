@@ -83,4 +83,10 @@ public interface Arena extends ConfigurationSerializable {
 	
 	public boolean isLoading();
 	
+	public void openKits(Player player);
+	
+	public boolean removePlayer(UUID uuid);
+	
+	public void selectKitForPlayer(Kit kit, Player player);
+	
 }
