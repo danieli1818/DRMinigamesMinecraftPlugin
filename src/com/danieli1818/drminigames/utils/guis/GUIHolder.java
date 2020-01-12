@@ -48,11 +48,29 @@ public class GUIHolder implements InventoryHolder {
 		}
 		return false;
 	}
+	
+	public void reset() {
+		
+		clearIcons();
+		
+	}
 
 	@Override
 	public Inventory getInventory() {
 		Inventory inventory = Bukkit.createInventory(this, this.size, this.title);
 		
+		for (Entry<Integer, Icon> entry : this.icons.entrySet()) {
+			inventory.setItem(entry.getKey(), entry.getValue().getItemStack());
+		}
+		
+		return inventory;
+	}
+	
+	public Inventory getInventory(InventoryHolder inventoryHolder) {
+		if (inventoryHolder == null) {
+			inventoryHolder = this;
+		}
+		Inventory inventory = Bukkit.createInventory(inventoryHolder, this.size, this.title);
 		
 		for (Entry<Integer, Icon> entry : this.icons.entrySet()) {
 			inventory.setItem(entry.getKey(), entry.getValue().getItemStack());

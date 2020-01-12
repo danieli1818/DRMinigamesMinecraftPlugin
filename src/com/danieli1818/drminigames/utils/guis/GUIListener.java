@@ -34,6 +34,20 @@ public class GUIListener implements Listener {
 				
 			}
 			
+		} else if (event.getView().getTopInventory().getHolder() instanceof SelectionGUIHolder) {
+			
+			event.setCancelled(true);
+			
+			if (event.getWhoClicked() instanceof Player) {
+				
+				SelectionGUIHolder gui = (SelectionGUIHolder)event.getView().getTopInventory().getHolder();
+				
+				Player player = (Player)event.getWhoClicked();
+				
+				gui.selectIcon(event.getRawSlot(), player);
+				
+			}
+			
 		}
 		
 	}

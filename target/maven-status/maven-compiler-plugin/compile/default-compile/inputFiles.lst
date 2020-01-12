@@ -2,6 +2,7 @@ C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\guis\ClickAction.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\subcommands\AddCommands.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\BaseArena.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\guis\SelectionGUIHolder.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\items\CustomItemStack.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\arenaslogics\drcolorshooting\BlockPointsInformation.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\DRMinigames.java
@@ -11,6 +12,7 @@ C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\guis\GUIListener.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\TextScoreboard.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\ArenasManager.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\items\enchantments\EnchantmentsManager.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\guis\BaseIcon.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\exceptions\ArgumentOutOfBoundsException.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\SavingAndLoadingUtils.java
@@ -37,6 +39,7 @@ C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\RegionUtils.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\guis\Icon.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\arena\kits\BaseKit.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\items\EffectsUtils.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\exceptions\InvalidConfigurationDataException.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\subcommands\RemoveCommands.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\TeamsArenaLogic.java
@@ -46,4 +49,5 @@ C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\commands\ArenaCommands.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\resources\api\Arena.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\configurationserializables\collections\lists\ConfigurationSerializableList.java
+C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\utils\items\enchantments\Glow.java
 C:\Users\home\Desktop\Minecraft Modding\MinecraftMod\eclipse\DRMinigames\src\com\danieli1818\drminigames\common\arenalogics\subcommands\SetCommands.java

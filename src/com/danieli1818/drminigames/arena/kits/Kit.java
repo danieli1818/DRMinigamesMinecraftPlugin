@@ -14,4 +14,6 @@ public interface Kit extends ConfigurationSerializable {
 	
 	void setSymbol(ItemStack symbol);
 	
+	String getName();
+	
 }

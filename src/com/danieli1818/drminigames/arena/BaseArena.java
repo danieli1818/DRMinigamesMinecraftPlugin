@@ -39,6 +39,7 @@ import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.resources.api.arena.events.JoinEvent;
 import com.danieli1818.drminigames.utils.guis.GUIHolder;
+import com.danieli1818.drminigames.utils.guis.SelectionGUIHolder;
 import com.danieli1818.drminigames.utils.items.Action;
 import com.danieli1818.drminigames.utils.items.CustomItemStack;
 //import com.danieli1818.drminigames.api.Arena;
@@ -75,7 +76,7 @@ public class BaseArena extends Observable implements Arena {
 	
 	private Timer countdownTimer;
 	
-	private GUIHolder guiHolder;
+	private SelectionGUIHolder guiHolder;
 	
 	private Map<UUID, Kit> currentPlayersKits;
 	
@@ -744,7 +745,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private void initializeGUIHolder() {
-		this.guiHolder = new GUIHolder(36, "kits");
+		this.guiHolder = new SelectionGUIHolder(36, "kits");
 		int i = 0;
 		for (Kit kit : this.kits) {
 			System.out.println("Adding Icon!");
@@ -755,7 +756,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private void resetGUIHolder() {
-		this.guiHolder.clearIcons();
+		this.guiHolder.reset();
 		int i = 0;
 		for (Kit kit : this.kits) {
 			this.guiHolder.addIcon(new KitIcon(kit));
@@ -774,7 +775,7 @@ public class BaseArena extends Observable implements Arena {
 	@Override
 	public void openKits(Player player) {
 		
-		player.openInventory(this.guiHolder.getInventory());
+		player.openInventory(this.guiHolder.getInventory(player));
 		
 	}
 	

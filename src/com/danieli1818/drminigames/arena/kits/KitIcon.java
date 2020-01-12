@@ -33,6 +33,8 @@ public class KitIcon implements Icon {
 				
 				arena.selectKitForPlayer(kit, player);
 				
+				System.out.println("Successfully Selected Kit: " + kit.getName());
+				
 			}
 		});
 	}
