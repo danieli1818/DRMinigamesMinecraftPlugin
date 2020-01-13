@@ -239,6 +239,11 @@ public class ArenaCommands implements CommandExecutor {
 			p.sendMessage("You aren't in a minigame!");
 			return false;
 		}
+		if (arena.removePlayer(p.getUniqueId())) {
+			p.sendMessage("Successfully Left Minigame!");
+		} else {
+			p.sendMessage("Error Leaving Minigame!");
+		}
 		return true;
 	}
 	

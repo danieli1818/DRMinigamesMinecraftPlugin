@@ -80,6 +80,8 @@ public class BaseArena extends Observable implements Arena {
 	
 	private Map<UUID, Kit> currentPlayersKits;
 	
+	private Map<UUID, ItemStack[]> playersInventories;
+	
 	private enum GameState {
 		UNAVAILABLE,
 		LOADING,
@@ -106,6 +108,7 @@ public class BaseArena extends Observable implements Arena {
 		});
 		initializeGUIHolder();
 		this.currentPlayersKits = new HashMap<>();
+		this.playersInventories = new HashMap<>();
 		reset();
 	}
 	
@@ -128,6 +131,7 @@ public class BaseArena extends Observable implements Arena {
 			updateScoreboard(null);
 			this.countdownTimer.start();
 		}
+		savePlayerInventory(p);
 		givePlayerWaitingItems(p);
 		return true;
 	}
@@ -156,6 +160,7 @@ public class BaseArena extends Observable implements Arena {
 		Player p = Bukkit.getPlayer(id);
 		p.teleport(this.leaveLocation);
 		p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+		loadPlayerInventory(p);
 		return true;
 	}
 	
@@ -813,6 +818,50 @@ public class BaseArena extends Observable implements Arena {
 			}
 			
 		}
+		
+	}
+	
+	private void savePlayersInventories() {
+		
+		for (UUID uuid : getPlayers()) {
+			
+			Player player = Bukkit.getPlayer(uuid);
+			
+			savePlayerInventory(player);
+			
+		}
+		
+	}
+	
+	private void loadPlayersInventories() {
+		
+		for (UUID uuid : getPlayers()) {
+			
+			Player player = Bukkit.getPlayer(uuid);
+			
+			loadPlayerInventory(player);
+			
+		}
+		
+	}
+	
+	private void savePlayerInventory(Player player) {
+		
+		this.playersInventories.put(player.getUniqueId(), player.getInventory().getStorageContents().clone());
+		
+	}
+	
+	private void loadPlayerInventory(Player player) {
+		
+		ItemStack[] inventory = this.playersInventories.get(player.getUniqueId());
+		
+		if (inventory == null) {
+			return;
+		}
+		
+		player.getInventory().setStorageContents(inventory);
+		
+		this.playersInventories.remove(player.getUniqueId());
 		
 	}
 	
