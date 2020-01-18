@@ -77,5 +77,24 @@ public class KitsManager {
 			loadKit(key);
 		}
 	}
+	
+	public boolean containsKit(String kitID) {
+		return this.kits.containsKey(kitID) || this.configuration.contains(kitID);
+	}
+	
+	public boolean removeKit(String kitID) {
+		if (!containsKit(kitID)) {
+			return true;
+		}
+		this.kits.remove(kitID);
+		this.configuration.set(kitID, null);
+		try {
+			this.configuration.save(this.configurationFile);
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
 
 }

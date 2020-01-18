@@ -6,6 +6,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
 import com.danieli1818.drminigames.resources.api.Arena;
@@ -28,6 +29,15 @@ public class MinigamesEventsListener implements Listener {
 			if (arena != null) {
 				arena.sendEvent(event);
 			}
+		}
+	}
+	
+	@EventHandler
+	public void onDropItem(PlayerDropItemEvent event) {
+		Player player = event.getPlayer();
+		Arena arena = ArenasManager.getInstance().getArena(player.getUniqueId());
+		if (arena != null) {
+			arena.sendEvent(event);
 		}
 	}
 	

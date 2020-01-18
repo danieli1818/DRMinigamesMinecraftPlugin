@@ -56,6 +56,18 @@ public class KitsCommands {
 					}
 					setKitSymbol(player, args[2]);
 				}
+			} else if (args[0].equalsIgnoreCase("remove")) {
+				if (args.length != 3) {
+					player.sendMessage("Invalid Syntax! Correct Syntax is: /" + commandPrefix + " " + command + " remove [kitID] [ArenaID]");
+					return false;
+				}
+				removeKit(player, args[1], args[2]);
+			} else if (args[0].equalsIgnoreCase("delete")) {
+				if (args.length != 2) {
+					player.sendMessage("Invalid Syntax! Correct Syntax is: /" + commandPrefix + " " + command + " delete [kitID]");
+					return false;
+				}
+				deleteKit(player, args[1]);
 			}
 		} else {
 			return false;
@@ -64,18 +76,29 @@ public class KitsCommands {
 	}
 	
 	public void createKit(Player player, String name, String id) {
+		if (KitsManager.getInstance().containsKit(id)) {
+			player.sendMessage("Kit With This ID Already Exists!");
+		}
 		Kit kit = new BaseKit(player.getInventory(), name, id);
-		KitsManager.getInstance().saveKit(id, kit);
+		if (KitsManager.getInstance().saveKit(id, kit)) {
+			player.sendMessage("Saved Kit " + id + " Successfully!");
+		}
+		
 	}
 	
 	public void addKit(Player player, String kitID, String ArenaID) {
 		Arena arena = ArenasManager.getInstance().getArena(ArenaID);
+		if (arena == null) {
+			player.sendMessage("No Arena With The ID: " + ArenaID + " Exists!");
+			return;
+		}
 		Kit kit = KitsManager.getInstance().loadKit(kitID);
 		if (kit == null) {
 			player.sendMessage("No Kit With The ID: " + kitID + " Exists!");
 			return;
 		}
 		arena.addKit(kit);
+		player.sendMessage("Successfully Added Kit With The ID " + kitID);
 	}
 	
 	public void setKitSymbol(Player player, String kitID) {
@@ -86,6 +109,38 @@ public class KitsCommands {
 		}
 		kit.setSymbol(player.getItemInHand());
 		KitsManager.getInstance().saveKit(kitID, kit);
+		player.sendMessage("Successfully Set Kit Symbol For Kit With The ID " + kitID);
+	}
+	
+	public void removeKit(Player player, String kitID, String arenaID) {
+		Arena arena = ArenasManager.getInstance().getArena(arenaID);
+		if (arena == null) {
+			player.sendMessage("No Arena With The ID: " + arenaID + " Exists!");
+		}
+		Kit kit = KitsManager.getInstance().loadKit(kitID);
+		if (kit == null) {
+			player.sendMessage("No Kit With The ID: " + kitID + " Exists!");
+			return;
+		}
+		if (!arena.removeKit(kit)) {
+			player.sendMessage("No Kit With The ID: " + kitID + " Is In The Arena With The ID: " + arenaID);
+			return;
+		}
+		player.sendMessage("Successfully Removed Kit!");
+		
+	}
+	
+	public void deleteKit(Player player, String kitID) {
+		Kit kit = KitsManager.getInstance().loadKit(kitID);
+		if (kit == null) {
+			player.sendMessage("No Kit With The ID: " + kitID + " Exists!");
+			return;
+		}
+		if (!KitsManager.getInstance().removeKit(kitID)) {
+			player.sendMessage("There Has Been An Error Deleting The Kit!");
+			return;
+		}
+		player.sendMessage("Successfully Deleted Kit!");
 	}
 
 	

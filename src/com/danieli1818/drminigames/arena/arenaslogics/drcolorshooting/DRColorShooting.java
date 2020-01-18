@@ -29,6 +29,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -136,6 +137,10 @@ public class DRColorShooting extends TeamsArenaLogic implements ArenaLogic {
 	private void onEvent(Event e) {
 		if (e instanceof ProjectileHitEvent) {
 			onProjectileHitEvent((ProjectileHitEvent)e);
+		} else {
+			if (e instanceof PlayerDropItemEvent) {
+				onPlayerDropItemEvent((PlayerDropItemEvent)e);
+			}
 		}
 	}
 	
@@ -155,6 +160,10 @@ public class DRColorShooting extends TeamsArenaLogic implements ArenaLogic {
 		this.spawnedBlocks.remove(block.getLocation());
 		event.getEntity().remove(); // remove projectile.
 		spawnRandomBlock(team); // spawn new block.
+	}
+	
+	private void onPlayerDropItemEvent(PlayerDropItemEvent event) {
+		event.setCancelled(true);
 	}
 	
 	private Entry<String, BlockPointsInformation> getTeamAndBlockPointsInformationOfBlock(Block block) {

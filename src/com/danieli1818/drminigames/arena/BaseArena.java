@@ -21,6 +21,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -373,12 +374,13 @@ public class BaseArena extends Observable implements Arena {
 	}
 
 	@Override
-	public void removeKit(Kit kit) {
+	public boolean removeKit(Kit kit) {
 		if (kit == null) {
-			return;
+			return false;
 		}
-		this.kits.remove(kit);
+		boolean returnValue = this.kits.remove(kit);
 		resetGUIHolder();
+		return returnValue;
 	}
 
 	@Override
@@ -509,6 +511,12 @@ public class BaseArena extends Observable implements Arena {
 
 	@Override
 	public boolean sendEvent(Event event) {
+		if (this.state == GameState.COUNTDOWN || this.state == GameState.WAITING) {
+			if (event instanceof PlayerDropItemEvent) {
+				PlayerDropItemEvent playerDropItemEvent = (PlayerDropItemEvent)event;
+				playerDropItemEvent.setCancelled(true);
+			}
+		}
 		setChanged();
 		notifyObservers(event);
 		return true;

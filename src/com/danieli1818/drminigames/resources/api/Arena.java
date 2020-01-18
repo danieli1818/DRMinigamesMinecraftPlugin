@@ -35,7 +35,7 @@ public interface Arena extends ConfigurationSerializable {
 	
 	public void addKit(Kit kit);
 	
-	public void removeKit(Kit kit);
+	public boolean removeKit(Kit kit);
 	
 	public void removeAllKits();
 	
