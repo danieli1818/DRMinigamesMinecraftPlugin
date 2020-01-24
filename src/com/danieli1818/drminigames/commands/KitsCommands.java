@@ -76,6 +76,10 @@ public class KitsCommands {
 	}
 	
 	public void createKit(Player player, String name, String id) {
+		if (!player.hasPermission("drminigames.kits.create")) {
+			player.sendMessage("You don't have permission for this command! (drminigames.kits.create)");
+			return;
+		}
 		if (KitsManager.getInstance().containsKit(id)) {
 			player.sendMessage("Kit With This ID Already Exists!");
 		}
@@ -87,6 +91,10 @@ public class KitsCommands {
 	}
 	
 	public void addKit(Player player, String kitID, String ArenaID) {
+		if (!player.hasPermission("drminigames.kits.add")) {
+			player.sendMessage("You don't have permission for this command! (drminigames.kits.add)");
+			return;
+		}
 		Arena arena = ArenasManager.getInstance().getArena(ArenaID);
 		if (arena == null) {
 			player.sendMessage("No Arena With The ID: " + ArenaID + " Exists!");
@@ -102,6 +110,10 @@ public class KitsCommands {
 	}
 	
 	public void setKitSymbol(Player player, String kitID) {
+		if (!player.hasPermission("drminigames.kits.set.symbol")) {
+			player.sendMessage("You don't have permission for this command! (drminigames.kits.set.symbol)");
+			return;
+		}
 		Kit kit = KitsManager.getInstance().loadKit(kitID);
 		if (kit == null) {
 			player.sendMessage("No Kit With The ID: " + kitID + " Exists!");
@@ -113,6 +125,10 @@ public class KitsCommands {
 	}
 	
 	public void removeKit(Player player, String kitID, String arenaID) {
+		if (!player.hasPermission("drminigames.kits.remove")) {
+			player.sendMessage("You don't have permission for this command! (drminigames.kits.remove)");
+			return;
+		}
 		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		if (arena == null) {
 			player.sendMessage("No Arena With The ID: " + arenaID + " Exists!");
@@ -131,6 +147,10 @@ public class KitsCommands {
 	}
 	
 	public void deleteKit(Player player, String kitID) {
+		if (!player.hasPermission("drminigames.kits.delete")) {
+			player.sendMessage("You don't have permission for this command! (drminigames.kits.delete)");
+			return;
+		}
 		Kit kit = KitsManager.getInstance().loadKit(kitID);
 		if (kit == null) {
 			player.sendMessage("No Kit With The ID: " + kitID + " Exists!");

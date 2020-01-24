@@ -208,7 +208,19 @@ public class ArenaCommands implements CommandExecutor {
 			p.sendMessage("Arena isn't available!");
 			return false;
 		}
-		arena.addPlayer(p.getUniqueId());
+		Arena currentArena = null;
+		if ((currentArena = ArenasManager.getInstance().getArena(p.getUniqueId())) != null) {
+			if (currentArena == arena) {
+				p.sendMessage("Already In The Arena!");
+			} else {
+				p.sendMessage("Already In An Arena! Type /drminigames leave to leave!");
+			}
+			return false;
+		}
+		if (!arena.addPlayer(p.getUniqueId())) {
+			p.sendMessage("Already In The Arena!");
+			return false;
+		}
 		p.sendMessage("Successfully Joined Arena " + id + "!");
 		return true;
 	}
@@ -287,7 +299,7 @@ public class ArenaCommands implements CommandExecutor {
 		
 		try {
 			World world = wep.getSession(p).getSelectionWorld();
-			Region r = wep.getSession(p).getSelection(world);
+			Region r = wep.getSession(p).getSelection(world).clone();
 //			BlockVector3 min = r.getMinimumPoint();
 //			BlockVector3 max = r.getMaximumPoint();
 //			Location l1 = new Location(world, min.getBlockX(), min.getBlockY(), min.getBlockZ());

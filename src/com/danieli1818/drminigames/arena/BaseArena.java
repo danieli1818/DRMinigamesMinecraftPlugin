@@ -253,12 +253,18 @@ public class BaseArena extends Observable implements Arena {
 	}
 		
 	public void setRegion(Region r) {
+		System.out.println("Before Set Region:");
+		printRegions();
 		this.limits = r;
 		this.spawnLocation.clear();
+		System.out.println("After Set Region:");
+		printRegions();
 	}
 	
 	@Override
 	public boolean setRegion(Region r, String id) {
+		System.out.println("Before:");
+		printRegions();
 		if (id == null) {
 			boolean returnValue = this.limits != null;
 			setRegion(r);
@@ -266,7 +272,19 @@ public class BaseArena extends Observable implements Arena {
 		}
 		boolean returnValue = this.regions.containsKey(id);
 		this.regions.put(id, r);
+		System.out.println("After:");
+		printRegions();
 		return returnValue;
+	}
+	
+	private void printRegions() {
+		System.out.println("Limits:");
+		System.out.println(regionToString(this.limits));
+		System.out.println("Regions:");
+		for (Entry<String, Region> entry : this.regions.entrySet()) {
+			System.out.println(entry.getKey() + ":");
+			System.out.println(regionToString(entry.getValue()));
+		}
 	}
 	
 	public boolean setSpawnPoint(String name, Location location) {
