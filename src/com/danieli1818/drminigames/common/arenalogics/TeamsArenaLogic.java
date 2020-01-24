@@ -169,7 +169,11 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			if (!currentTeamColor.hasNext()) {
 				currentTeamColor = teams.iterator();
 			}
-			currentTeamColor.next().addPlayer(Bukkit.getOfflinePlayer(uuid));
+			Team team = currentTeamColor.next();
+			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+			team.addPlayer(offlinePlayer);
+			Player player = offlinePlayer.getPlayer();
+			player.sendMessage("Joined " + team.getDisplayName() + "!");
 		}
 	}
 	
@@ -211,6 +215,11 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		
 		List<Team> teams = getWinningTeamsByOrder();
 		
+		for (UUID uuid : this.arena.getPlayers()) {
+			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+			offlinePlayer.getPlayer().sendMessage(getFinishPlayerMessages(offlinePlayer, teams));
+		}
+		
 		int currentPlace = 1;
 		
 		for (Team team : teams) {
@@ -223,6 +232,36 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		
 		reset();
 		
+	}
+	
+	public String[] getFinishPlayerMessages(OfflinePlayer player, List<Team> teams) {
+		
+		String[] messages = new String[7];
+		messages[0] = "Results:";
+		int place = 1;
+		for (Team team : teams) {
+			if (place == 5) {
+				break;
+			}
+			messages[place] = place + ": " + team.getDisplayName(); 
+			place++;
+		}
+		messages[place] = "";
+		int currentPlayerTeamPlace = 1;
+		for (Team team : teams) {
+			if (team.hasPlayer(player)) {
+				break;
+			}
+			currentPlayerTeamPlace++;
+		}
+		messages[place + 1] = "Your Team's Place Is: " + currentPlayerTeamPlace;
+		messages = Arrays.copyOf(messages, place + 2);
+		return messages;
+		
+	}
+	
+	public Team getPlayerTeam(OfflinePlayer player) {
+		return this.board.getPlayerTeam(player);
 	}
 	
 	public boolean command(Player player, String[] args) {
@@ -343,7 +382,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			Score team1Score = team1Scores.iterator().next();
 			Score team2Score = team2Scores.iterator().next();
 			
-			return team1Score.getScore() - team2Score.getScore();
+			return -team1Score.getScore() + team2Score.getScore();
 			
 		});
 		
