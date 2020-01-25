@@ -1,5 +1,7 @@
 package com.danieli1818.drminigames.common.arenalogics.subcommands;
 
+import java.util.Arrays;
+
 import org.bukkit.entity.Player;
 
 import com.danieli1818.drminigames.common.arenalogics.TeamsArenaLogic;
@@ -42,7 +44,17 @@ public class SetCommands {
 			}
 			setTimeForGame(player, args[1]);
 			return true;
-		} else {
+		} else if (subCommand.equalsIgnoreCase("displayName")) {
+			if (args.length < 3) {
+				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] set displayName [Team ID] [Display Name] ...");
+				return false;
+			}
+			String[] displayNameArray = Arrays.copyOfRange(args, 2, args.length);
+			String displayName = String.join(" ", displayNameArray);
+			setDisplayName(player, args[1], displayName);
+			return true;
+		}
+		else {
 			return false;
 		}
 
@@ -77,4 +89,13 @@ public class SetCommands {
 			player.sendMessage("Not Valid Time In Seconds! Time In Seconds Must Be A Number And Bigger Than 0!");
 		}
 	}
+	
+	private void setDisplayName(Player player, String teamID, String displayName) {
+		if (!player.hasPermission("drminigames.set.displayname")) {
+			player.sendMessage("You don't have permission for this command! (drminigames.set.displayname)");
+			return;
+		}
+		this.arenaLogic.setTeamDisplayName(teamID, displayName);
+	}
+	
 }

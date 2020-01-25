@@ -49,6 +49,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 	private volatile Boolean shouldStop;
 	private final Object shouldStopLock = new Object();
 	private Map<String, String> teamPrefixes;
+	private Map<String, String> teamDisplayNames;
 	private Scoreboard board;
 	private NavigableMap<Integer, List<String>> rewardsCommands;
 	private SetCommands setCommands;
@@ -85,6 +86,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		});
 		this.addCommands = new AddCommands(this);
 		this.removeCommands = new RemoveCommands(this);
+		this.teamDisplayNames = new HashMap<String, String>();
 	}
 	
 	public TeamsArenaLogic(Arena arena) {
@@ -94,12 +96,17 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		this.board = initializeScoreboard(new ArrayList<String>());
 		this.shouldStop = false;
 		this.setCommands = new SetCommands(this);
-		this.timer = new Timer();
+		try {
+			this.timer = new Timer(300000);
+		} catch (ArgumentOutOfBoundsException e) {
+			e.printStackTrace();
+		}
 		this.timer.setTask((Long time) -> {
 			onTimeUpdated(time);
 		});
 		this.addCommands = new AddCommands(this);
 		this.removeCommands = new RemoveCommands(this);
+		this.teamDisplayNames =  new HashMap<String, String>();
 	}
 
 	@Override
@@ -222,13 +229,14 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		
 		int currentPlace = 1;
 		
+		this.arena.finishGame();
+		
 		for (Team team : teams) {
 			
 			giveRewardsToTeam(team, currentPlace);
+			currentPlace++;
 			
 		}
-		
-		this.arena.finishGame();
 		
 		reset();
 		
@@ -322,7 +330,12 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			
 			team.setPrefix(prefix);
 			
-			team.setDisplayName(teamID);
+			if (this.teamDisplayNames.get(teamID) != null) {
+				team.setDisplayName(this.teamDisplayNames.get(teamID));
+			} else {
+				team.setDisplayName(teamID);
+			}
+			
 			
 			team.setCanSeeFriendlyInvisibles(true);
 			
@@ -548,6 +561,8 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		map.put("rewardsCommands", rewardsCommands.entrySet().stream().map((Entry<Integer, List<String>> entry) -> {
 			return new AbstractMap.SimpleEntry<String, List<String>>(entry.getKey().toString(), entry.getValue());
 		}).collect(Collectors.toMap((Entry::getKey), Entry::getValue)));
+		map.put("timer", this.timer);
+		map.put("displayNames", this.teamDisplayNames);
 		return map;
 	}
 	
@@ -571,6 +586,15 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			arenaLogic.rewardsCommands = new TreeMap<>(rewardsCommandsStringMap.entrySet().stream().map((Entry<String, List<String>> entry) -> {
 				return new AbstractMap.SimpleEntry<>(Integer.parseInt(entry.getKey()), entry.getValue());
 			}).collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+		}
+		if (map.get("timer") != null && map.get("timer") instanceof Timer) {
+			arenaLogic.timer = (Timer)map.get("timer");
+			arenaLogic.timer.setTask((Long time) -> {
+				arenaLogic.onTimeUpdated(time);
+			});
+		}
+		if (map.get("displayNames") != null && map.get("displayNames") instanceof Map<?, ?>) {
+			arenaLogic.teamDisplayNames = (Map<String, String>)map.get("displayNames");
 		}
 		return arenaLogic;
 	}
@@ -643,6 +667,14 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 	
 	public void clearRewardsCommands(int place) {
 		this.rewardsCommands.remove(place);
+	}
+	
+	public boolean setTeamDisplayName(String teamID, String displayName) {
+		if (!getTeamsNames().contains(teamID)) {
+			return false;
+		}
+		this.teamDisplayNames.put(teamID, displayName);
+		return true;
 	}
 	
 }
