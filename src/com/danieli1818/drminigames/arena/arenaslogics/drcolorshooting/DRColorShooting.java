@@ -146,7 +146,8 @@ public class DRColorShooting extends TeamsArenaLogic implements ArenaLogic {
 	
 	private void onProjectileHitEvent(ProjectileHitEvent event) {
 		Block block = event.getHitBlock();
-		if (block == null || getTeamAndBlockPointsInformationOfBlock(block) == null) {
+		if (!isBlockInSpawnedBlocks(block) || getTeamAndBlockPointsInformationOfBlock(block) == null) {
+			event.getEntity().remove();
 			return;
 		}
 		Entry<String, BlockPointsInformation> entry = getTeamAndBlockPointsInformationOfBlock(block);
@@ -417,6 +418,13 @@ public class DRColorShooting extends TeamsArenaLogic implements ArenaLogic {
 	public void onSyncStart() {
 		super.onSyncStart();
 		spawnedBlocks = spawnRandomTeamBlocks();
+	}
+	
+	private boolean isBlockInSpawnedBlocks(Block block) {
+		if (block == null) {
+			return false;
+		}
+		return this.spawnedBlocks.contains(block.getLocation());
 	}
 		
 }

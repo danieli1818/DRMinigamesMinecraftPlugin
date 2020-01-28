@@ -77,6 +77,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		this.arena = arena;
 		this.teamPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
+		this.teamDisplayNames = new HashMap<String, String>();
 		this.board = initializeScoreboard(teams);
 		this.shouldStop = false;
 		this.setCommands = new SetCommands(this);
@@ -86,13 +87,13 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		});
 		this.addCommands = new AddCommands(this);
 		this.removeCommands = new RemoveCommands(this);
-		this.teamDisplayNames = new HashMap<String, String>();
 	}
 	
 	public TeamsArenaLogic(Arena arena) {
 		this.arena = arena;
 		this.teamPrefixes = new HashMap<String, String>();
 		this.rewardsCommands = new TreeMap<Integer, List<String>>();
+		this.teamDisplayNames =  new HashMap<String, String>();
 		this.board = initializeScoreboard(new ArrayList<String>());
 		this.shouldStop = false;
 		this.setCommands = new SetCommands(this);
@@ -106,7 +107,6 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		});
 		this.addCommands = new AddCommands(this);
 		this.removeCommands = new RemoveCommands(this);
-		this.teamDisplayNames =  new HashMap<String, String>();
 	}
 
 	@Override

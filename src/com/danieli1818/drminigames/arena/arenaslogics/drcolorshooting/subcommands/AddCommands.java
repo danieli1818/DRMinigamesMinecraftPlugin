@@ -32,7 +32,9 @@ public class AddCommands {
 			try {
 				int points = Integer.parseInt(args[2]);
 				String block = args.length == 4 ? args[3] : null;
-				addBlock(player, args[1], block, points);
+				if (!addBlock(player, args[1], block, points)) {
+					return false;
+				}
 				player.sendMessage("Successfully Add Block!");
 			} catch (NumberFormatException e) {
 				player.sendMessage("Points should be an integer!");
@@ -68,15 +70,16 @@ public class AddCommands {
 		}
 	}
 	
-	private void addBlock(Player player, String teamID, String block, int points) {
+	private boolean addBlock(Player player, String teamID, String block, int points) {
 		
 		if (!player.hasPermission("drminigames.drcolorshooting.add.block." + this.arenaLogic.getArenaID())) {
 			player.sendMessage("You don't have permission to run this command! (drminigames.drcolorshooting.add.block." + this.arenaLogic.getArenaID() + ")");
-			return;
+			return false;
 		}
 		
 		if (!this.arenaLogic.containsTeam(teamID)) {
 			player.sendMessage("Team " + teamID + " doesn't exist!");
+			return false;
 		}
 		
 		MaterialData data = null;
@@ -87,14 +90,14 @@ public class AddCommands {
 			
 			if (holdingItem == null) {
 				player.sendMessage("You didn't type block type nor hold a block in your main hand!");
-				return;
+				return false;
 			}
 			
 			data = holdingItem.getData();
 			
 			if (!data.getItemType().isBlock()) {
 				player.sendMessage("You didn't hold a block type item!");
-				return;
+				return false;
 			}
 			
 		} else {
@@ -107,12 +110,12 @@ public class AddCommands {
 				
 				if (material == null) {
 					player.sendMessage("Block not found!");
-					return;
+					return false;
 				}
 				
 				if (!material.isBlock()) {
 					player.sendMessage("Not Valid Block!");
-					return;
+					return false;
 				}
 				
 				if (material != null && materialIDSubID.length >= 2) {
@@ -133,6 +136,7 @@ public class AddCommands {
 		
 		BlockPointsInformation bpi = new BlockPointsInformation(new BlockInformation(data), points);
 		this.arenaLogic.addBlockPointsInformationToTeam(bpi, teamID);
+		return true;
 	}
 	
 	private boolean addTeam(Player player, String name) {
