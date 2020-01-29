@@ -22,6 +22,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -534,6 +537,10 @@ public class BaseArena extends Observable implements Arena {
 				PlayerDropItemEvent playerDropItemEvent = (PlayerDropItemEvent)event;
 				playerDropItemEvent.setCancelled(true);
 			}
+		}
+		if (event instanceof PlayerQuitEvent || event instanceof PlayerKickEvent) {
+			PlayerEvent playerEvent = (PlayerEvent)event;
+			removePlayer(playerEvent.getPlayer().getUniqueId());
 		}
 		setChanged();
 		notifyObservers(event);

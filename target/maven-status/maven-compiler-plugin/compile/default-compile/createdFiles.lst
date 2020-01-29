@@ -4,6 +4,7 @@ com\danieli1818\drminigames\utils\items\EffectsUtils.class
 com\danieli1818\drminigames\utils\items\CustomItemStackTypes$2.class
 com\danieli1818\drminigames\resources\api\arena\events\JoinEvent.class
 com\danieli1818\drminigames\utils\guis\Icon.class
+com\danieli1818\drminigames\utils\chat\ColorChat.class
 com\danieli1818\drminigames\arena\BaseArena.class
 com\danieli1818\drminigames\utils\guis\ClickAction.class
 com\danieli1818\drminigames\arena\ArenasLogicsManager.class

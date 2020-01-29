@@ -17,13 +17,6 @@ public class SetCommands {
 		if (subCommand == null) {
 			helpCommand(player, 1);
 			return true;
-		} else if (subCommand.equalsIgnoreCase("prefix")) {
-			if (args.length != 3) {
-				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] set prefix [TeamID] [Prefix]");
-				return true;
-			}
-			setPrefix(player, args[1], args[2]);
-			return true;
 		} else if (subCommand.equalsIgnoreCase("numOfBlocksPerTeam")) {
 			if (args.length != 2) {
 				player.sendMessage("Invalid Syntax! Correct Syntax is: /drminigames command [ArenaID] set numOfBlocksPerTeam [Number]");
@@ -61,20 +54,10 @@ public class SetCommands {
 		if (page == 1) {
 			player.sendMessage("/drminigames command [ArenaID] set help [Page Number] - Show This Page!");
 			player.sendMessage("/drminigames command [ArenaID] set numOfBlocksPerTeam [Number] - Set Number Of Blocks Spawning For Each Team!");
-			player.sendMessage("/drminigames command [ArenaID] set prefix [TeamID] [Prefix] - Set Prefix Of Team.");
 		} else {
 			player.sendMessage("Not Valid Page Number!");
 		}
 		
-	}
-	
-	private void setPrefix(Player player, String teamID, String prefix) {
-		if (!this.arenaLogic.containsTeam(teamID)) {
-			player.sendMessage("Team " + teamID + " doesn't exist!");
-			return;
-		}
-		this.arenaLogic.addPrefixToTeam(teamID, prefix);
-		player.sendMessage("Successfully Set Prefix!");
 	}
 	
 	private void setNumOfBlocksPerTeam(Player player, String number) {

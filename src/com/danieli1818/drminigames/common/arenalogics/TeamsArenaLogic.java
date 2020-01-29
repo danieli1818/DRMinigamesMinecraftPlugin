@@ -24,6 +24,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -40,6 +43,7 @@ import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsExceptio
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.utils.ArenasManager;
+import com.danieli1818.drminigames.utils.chat.ColorChat;
 import com.sk89q.worldedit.regions.Region;
 
 public abstract class TeamsArenaLogic implements ArenaLogic {
@@ -161,6 +165,25 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		if (!this.arena.isRunning()) {
 			return;
 		}
+		if (arg instanceof PlayerQuitEvent || arg instanceof PlayerKickEvent) {
+			PlayerEvent event = (PlayerEvent)arg;
+			removePlayer(event.getPlayer());
+		}
+	}
+	
+	private void removePlayer(Player player) {
+		Team team = getPlayerTeam(player);
+		team.removePlayer(player);
+		int numOfTeams = 0;
+		for (Team currentTeam : getTeams()) {
+			if (currentTeam.getPlayers().isEmpty()) {
+				numOfTeams++;
+				if (numOfTeams > 1) {
+					return;
+				}
+			}
+		}
+		finish();
 	}
 	
 	public String getArenaID() {
@@ -180,7 +203,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 			team.addPlayer(offlinePlayer);
 			Player player = offlinePlayer.getPlayer();
-			player.sendMessage("Joined " + team.getDisplayName() + "!");
+			player.sendMessage(ColorChat.chat("Joined " + team.getDisplayName() + "!"));
 		}
 	}
 	
@@ -224,7 +247,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		
 		for (UUID uuid : this.arena.getPlayers()) {
 			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-			offlinePlayer.getPlayer().sendMessage(getFinishPlayerMessages(offlinePlayer, teams));
+			offlinePlayer.getPlayer().sendMessage(ColorChat.chat(getFinishPlayerMessages(offlinePlayer, teams)));
 		}
 		
 		int currentPlace = 1;
@@ -316,10 +339,18 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			
 			Team team = scoreboard.registerNewTeam(teamID);
 			
+			team.setColor(ChatColor.GOLD);
+			
 			String prefix;
+			
+			System.out.println("Team ID: " + teamID);
+			for (Entry<String, String> entry : this.teamPrefixes.entrySet()) {
+				System.out.println("Team ID: " + entry.getKey() + " Team Prefix: " + entry.getValue());
+			}
 			
 			if (this.teamPrefixes.containsKey(teamID)) {
 				
+				System.out.println("Entered Prefix!");
 				prefix = ChatColor.translateAlternateColorCodes('&', this.teamPrefixes.get(teamID));
 				
 			} else {
@@ -327,7 +358,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 				prefix = "[" + teamID + "]";
 				
 			}
-			
+			System.out.println("Prefix: " + prefix);
 			team.setPrefix(prefix);
 			
 			if (this.teamDisplayNames.get(teamID) != null) {
@@ -494,6 +525,10 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			returnValue = true;
 		}
 		this.teamPrefixes.put(teamID, prefix);
+		Team team = getTeam(teamID);
+		if (team != null) {
+			team.setPrefix(prefix);
+		}
 		return returnValue;
 	}
 	
@@ -575,9 +610,6 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		if (arenaLogic.arena == null) {
 			return null;
 		}
-		if (map.get("teams") != null && map.get("teams") instanceof List<?>) {
-			arenaLogic.board = arenaLogic.initializeScoreboard((List<String>)map.get("teams"));
-		}
 		if (map.get("teamPrefixes") != null && map.get("teamPrefixes") instanceof Map<?, ?>) {
 			arenaLogic.teamPrefixes = (Map<String, String>)map.get("teamPrefixes");
 		}
@@ -595,6 +627,9 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		}
 		if (map.get("displayNames") != null && map.get("displayNames") instanceof Map<?, ?>) {
 			arenaLogic.teamDisplayNames = (Map<String, String>)map.get("displayNames");
+		}
+		if (map.get("teams") != null && map.get("teams") instanceof List<?>) { // must be last!
+			arenaLogic.board = arenaLogic.initializeScoreboard((List<String>)map.get("teams"));
 		}
 		return arenaLogic;
 	}
@@ -674,7 +709,17 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 			return false;
 		}
 		this.teamDisplayNames.put(teamID, displayName);
+		getTeam(teamID).setDisplayName(displayName);
 		return true;
+	}
+	
+	private Team getTeam(String teamID) {
+		for (Team team : getTeams()) {
+			if (team.getName().equals(teamID)) {
+				return team;
+			}
+		}
+		return null;
 	}
 	
 }
