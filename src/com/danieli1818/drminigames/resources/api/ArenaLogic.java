@@ -15,8 +15,6 @@ public interface ArenaLogic extends Observer, ConfigurationSerializable {
 	
 	public boolean canBeAvailable(Arena arena);
 	
-	public String getID();
-	
 	@Override
 	default void update(Observable o, Object arg) {
 		// TODO Auto-generated method stub

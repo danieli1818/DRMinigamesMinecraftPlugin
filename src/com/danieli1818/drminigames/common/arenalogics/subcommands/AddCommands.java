@@ -8,8 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 
-import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.BlockPointsInformation;
-import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.DRColorShooting;
 import com.danieli1818.drminigames.common.BlockInformation;
 import com.danieli1818.drminigames.common.arenalogics.TeamsArenaLogic;
 

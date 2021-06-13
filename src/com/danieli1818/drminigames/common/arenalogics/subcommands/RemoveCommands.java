@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import org.bukkit.entity.Player;
 
-import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.DRColorShooting;
 import com.danieli1818.drminigames.common.arenalogics.TeamsArenaLogic;
 
 public class RemoveCommands {

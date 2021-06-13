@@ -15,8 +15,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import com.danieli1818.drminigames.arena.ArenasLogicsManager;
 import com.danieli1818.drminigames.arena.BaseArena;
-import com.danieli1818.drminigames.arena.arenaslogics.drcolorshooting.DRColorShooting;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.DRMinigamePlugin;
 import com.danieli1818.drminigames.utils.ArenasManager;
@@ -467,7 +467,7 @@ public class ArenaCommands implements CommandExecutor {
 		
 		DRMinigamePlugin drplugin = (DRMinigamePlugin)plugin;
 		
-		arena.setType(drplugin.getArenaLogic());
+		arena.setType(drplugin.getArenaLogicFactory().create(arena));
 		
 		p.sendMessage("Arena " + arenaID + "'s type has been set successfully!");
 		
@@ -489,13 +489,24 @@ public class ArenaCommands implements CommandExecutor {
 		
 		Arena arena = ArenasManager.getInstance().getArena(arenaID);
 		
+		System.out.println(typeName);
+		
 		if (typeName == null) {
 			p.sendMessage("Type doesn't exist!");
 			return false;
 		}
-		if (typeName.equalsIgnoreCase("DRColorShooting")) {
+		// TODO Add External Types Of Minigames.
+		typeName = typeName.toUpperCase();
+		if (ArenasLogicsManager.getInstance().getArenaLogicsTypes().contains(typeName)) {
+			if (args.length == 0) {
+				arena.setType(ArenasLogicsManager.getInstance().getArenaLogicFactory(typeName).create(arena));
+			} else {
+				arena.setType(ArenasLogicsManager.getInstance().getArenaLogicFactory(typeName).create(arena, args));
+			}
+		}
+		/* if (typeName.equalsIgnoreCase("DRColorShooting")) {
 			arena.setType(new DRColorShooting(arena, args));
-		} else {
+		} */ else {
 			p.sendMessage("Type doesn't exist!");
 			return false;
 		}
@@ -543,7 +554,7 @@ public class ArenaCommands implements CommandExecutor {
 			return false;
 		}
 		
-		p.sendMessage("Arenas Have Beean Successfully Saved!");
+		p.sendMessage("Arenas Have Been Successfully Saved!");
 		return true;
 	}
 	

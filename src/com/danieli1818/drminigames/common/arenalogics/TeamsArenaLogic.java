@@ -194,12 +194,14 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		List<UUID> uuids = this.arena.getPlayers();
 		Collections.shuffle(uuids);
 		Set<Team> teams = this.board.getTeams();
+		System.out.println(teams.size());
 		Iterator<Team> currentTeamColor = teams.iterator();
 		for (UUID uuid : uuids) {
 			if (!currentTeamColor.hasNext()) {
 				currentTeamColor = teams.iterator();
 			}
 			Team team = currentTeamColor.next();
+			System.out.println("Team: " + team.getDisplayName());
 			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 			team.addPlayer(offlinePlayer);
 			Player player = offlinePlayer.getPlayer();
@@ -634,11 +636,6 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		return arenaLogic;
 	}
 
-	@Override
-	public String getID() {
-		return "TeamsDRMinigame";
-	}
-	
 	public void onStart() {}
 	
 	public void onSyncStart() {}
