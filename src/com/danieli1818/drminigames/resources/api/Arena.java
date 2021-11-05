@@ -2,10 +2,10 @@ package com.danieli1818.drminigames.resources.api;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -13,7 +13,7 @@ import org.bukkit.event.Event;
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.sk89q.worldedit.regions.Region;
 
-public interface Arena extends ConfigurationSerializable {
+public interface Arena extends ConfigurationSerializable, ArenaLogicListener {
 
 	public List<UUID> getPlayers();
 	
@@ -29,7 +29,7 @@ public interface Arena extends ConfigurationSerializable {
 	
 	public int getMaxNumPlayers();
 	
-	public ArenaLogic getAL();
+	public ArenaLogic getArenaLogic();
 	
 	public long getCountdown();
 	
@@ -52,6 +52,8 @@ public interface Arena extends ConfigurationSerializable {
 	public boolean setUnavailable();
 
 	public boolean setAvailable();
+	
+	public boolean setAvailable(CommandSender sender);
 
 	public boolean setSpawnPoint(String name, Location location);
 

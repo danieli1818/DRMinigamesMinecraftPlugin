@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
-import java.util.Observable;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -23,10 +22,6 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -145,35 +140,36 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 	}
 
 	@Override
-	public boolean canBeAvailable(Arena arena) {
+	public String canBeAvailable(Arena arena) {
 		Map<String, Location> spawns = arena.getSpawnLocation();
-		Map<String, Region> regions = arena.getRegions();
 		for (Team team : getTeams()) {
 			String teamName = team.getName();
-			if (spawns.get(teamName) == null || regions.get(teamName) == null) {
-				return false;
+			if (spawns.get(teamName) == null) {
+				return "Error! Missing Spawn Of Team: " + teamName + "!";
 			}
 		}
 		if (arena.getLimits() == null) {
-			return false;
+			return "Error! Arena region is missing!";
 		}
-		return true;
+		return "";
 	}
 	
-	@Override
-	public void update(Observable o, Object arg) {
-		if (!this.arena.isRunning()) {
-			return;
-		}
-		if (arg instanceof PlayerQuitEvent || arg instanceof PlayerKickEvent) {
-			PlayerEvent event = (PlayerEvent)arg;
-			removePlayer(event.getPlayer());
-		}
-	}
+//	@Override
+//	public void update(Observable o, Object arg) {
+//		if (!this.arena.isRunning()) {
+//			return;
+//		}
+//		if (arg instanceof PlayerQuitEvent || arg instanceof PlayerKickEvent) {
+//			PlayerEvent event = (PlayerEvent)arg;
+//			removePlayer(event.getPlayer());
+//		}
+//	}
 	
-	private void removePlayer(Player player) {
+	public void removePlayer(Player player) {
 		Team team = getPlayerTeam(player);
-		team.removePlayer(player);
+		if (team != null) {
+			team.removePlayer(player);
+		}
 		int numOfTeams = 0;
 		for (Team currentTeam : getTeams()) {
 			if (currentTeam.getPlayers().isEmpty()) {
@@ -710,7 +706,7 @@ public abstract class TeamsArenaLogic implements ArenaLogic {
 		return true;
 	}
 	
-	private Team getTeam(String teamID) {
+	protected Team getTeam(String teamID) {
 		for (Team team : getTeams()) {
 			if (team.getName().equals(teamID)) {
 				return team;

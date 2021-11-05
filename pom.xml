@@ -46,6 +46,20 @@
 		  <version>2.1.0</version>
 		</dependency>
 		
+		<dependency>
+            <groupId>me.danieli1818</groupId>
+            <artifactId>drcustomitems</artifactId>
+            <version>0.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>me.danieli1818</groupId>
+            <artifactId>drguis</artifactId>
+            <version>0.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+		
        <!-- <dependency>
            <groupId>org.bukkit</groupId>
            <artifactId>craftbukkit</artifactId>

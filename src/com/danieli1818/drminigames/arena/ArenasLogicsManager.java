@@ -3,6 +3,7 @@ package com.danieli1818.drminigames.arena;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +25,9 @@ public class ArenasLogicsManager {
 	
 	private static DRMinigames plugin = DRMinigames.getPlugin(DRMinigames.class);
 	
-	private static FileConfiguration arenasLogicsConfig = plugin.getArenasLogicsConfig();
+	private static FileConfiguration arenasLogicsConfig;
 	
-	private static File arenasLogicsConfigFile = plugin.getArenasLogicsConfigFile();
+	private static File arenasLogicsConfigFile;
 	
 	private Map<String, ArenaLogicFactory> arenaLogicsFactoriesTypes;
 	
@@ -36,6 +37,8 @@ public class ArenasLogicsManager {
 	
 	public static ArenasLogicsManager getInstance() {
 		if (instance == null) {
+			arenasLogicsConfig = plugin.getArenasLogicsConfig();
+			arenasLogicsConfigFile = plugin.getArenasLogicsConfigFile();
 			instance = new ArenasLogicsManager();
 		}
 		return instance;
@@ -50,15 +53,25 @@ public class ArenasLogicsManager {
 	}
 	
 	public static void saveArenaLogic(ArenaLogic al, String id) throws IOException {
+		System.out.println("Saving arena logic: " + al.toString());
 		SavingAndLoadingUtils.saveSerializable(al, arenasLogicsConfig, arenasLogicsConfigFile, id);
 	}
 	
-	public void loadArenasLogics(List<Arena> arenas) {
+	public void loadArenasLogics(Collection<Arena> arenas) {
+		if (arenasLogicsConfig == null) {
+			arenasLogicsConfig = plugin.getArenasLogicsConfig();
+			arenasLogicsConfigFile = plugin.getArenasLogicsConfigFile();
+		}
 		for (Arena arena : arenas) {
 			if (arena != null) {
 				arena.setType(loadArenaLogic(arena));
 			}
 		}
+	}
+	
+	public void reloadArenasLogicsConfig() {
+		arenasLogicsConfig = plugin.getArenasLogicsConfig();
+		arenasLogicsConfigFile = plugin.getArenasLogicsConfigFile();
 	}
 	
 	public void loadArenaLogicsFactoriesTypes() {

@@ -8,8 +8,9 @@ import org.bukkit.inventory.ItemStack;
 
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.utils.ArenasManager;
-import com.danieli1818.drminigames.utils.guis.ClickAction;
-import com.danieli1818.drminigames.utils.guis.Icon;
+
+import drguis.guis.icons.Icon;
+import drguis.guis.icons.actions.ClickAction;
 
 public class KitIcon implements Icon {
 	

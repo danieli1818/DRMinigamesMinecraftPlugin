@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.inventory.ItemStack;
@@ -62,10 +63,17 @@ public class SavingAndLoadingUtils {
 	}
 	
 	public static void saveSerializable(ConfigurationSerializable confSerializable, FileConfiguration conf, File file, String path) throws IOException {
+		if (conf == null) {
+			conf = new YamlConfiguration();
+		}
 		conf.set(path, confSerializable);
 		if (file != null) {
+			System.out.println("Saving!");
 			conf.save(file);
+		} else {
+			System.out.println("File is null!");
 		}
+		System.out.println("Finished saving configuration serializable: " + confSerializable.toString());
 	}
 	
 	public static void registerConfigurationSerializables() {

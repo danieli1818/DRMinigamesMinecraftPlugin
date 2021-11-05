@@ -167,6 +167,7 @@ public class ArenasManager {
 	}
 
 	public void loadArenasLogics() {
+		ArenasLogicsManager.getInstance().reloadArenasLogicsConfig();
 		for (Arena arena : this.arenas.values()) {
 			arena.setType(ArenasLogicsManager.loadArenaLogic(arena));
 			if (arena.isLoading()) {

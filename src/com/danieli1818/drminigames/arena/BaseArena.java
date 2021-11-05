@@ -8,44 +8,35 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Observable;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.util.BlockVector;
 
 import com.danieli1818.drminigames.DRMinigames;
 import com.danieli1818.drminigames.arena.kits.Kit;
 import com.danieli1818.drminigames.arena.kits.KitIcon;
 import com.danieli1818.drminigames.arena.kits.KitsManager;
 import com.danieli1818.drminigames.common.TextScoreboard;
+import com.danieli1818.drminigames.common.arenalogics.listeners.BaseArenaLogicListener;
 import com.danieli1818.drminigames.common.configurationserializables.Timer;
 import com.danieli1818.drminigames.common.exceptions.ArgumentOutOfBoundsException;
 import com.danieli1818.drminigames.common.exceptions.InvalidConfigurationDataException;
 import com.danieli1818.drminigames.resources.api.Arena;
 import com.danieli1818.drminigames.resources.api.ArenaLogic;
 import com.danieli1818.drminigames.resources.api.arena.events.JoinEvent;
-import com.danieli1818.drminigames.utils.guis.GUIHolder;
-import com.danieli1818.drminigames.utils.guis.SelectionGUIHolder;
-import com.danieli1818.drminigames.utils.items.Action;
-import com.danieli1818.drminigames.utils.items.CustomItemStack;
 //import com.danieli1818.drminigames.api.Arena;
 //import com.danieli1818.drminigames.api.ArenaLogic;
 //import com.danieli1818.drminigames.api.arena.events.JoinEvent;
@@ -54,7 +45,10 @@ import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 
-public class BaseArena extends Observable implements Arena {
+import drcustomitems.items.CustomItemStacksManager;
+import drguis.guis.types.selection_gui.ArraySelectionGUI;
+
+public class BaseArena extends BaseArenaListener implements Arena {
 	
 	private final String id;
 	
@@ -80,7 +74,7 @@ public class BaseArena extends Observable implements Arena {
 	
 	private Timer countdownTimer;
 	
-	private SelectionGUIHolder guiHolder;
+	private ArraySelectionGUI guiHolder;
 	
 	private Map<UUID, Kit> currentPlayersKits;
 	
@@ -126,12 +120,11 @@ public class BaseArena extends Observable implements Arena {
 		}
 		Player p = Bukkit.getPlayer(id);
 		this.board.getTeam("players").addPlayer(p);
-		notifyObservers(new JoinEvent(p));
+		getArenaLogic().getListener().onJoinGameEvent(new JoinEvent(p));
 		p.teleport(this.waitingLocation);
 		this.board.setScoreboardToPlayer(p);
 		if (this.state != GameState.COUNTDOWN && getPlayers().size() >= this.minNumPlayers) {
 			this.state = GameState.COUNTDOWN;
-			Arena thisArena = this;
 			updateScoreboard(null);
 			this.countdownTimer.start();
 		}
@@ -186,8 +179,20 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	public boolean setAvailable() {
-		if (!canBeAvailable()) {
+		String canBeAvailableString = canBeAvailable();
+		if (canBeAvailableString != null) {
 			// message
+			return false;
+		}
+		this.state = GameState.WAITING;
+		return true;
+	}
+	
+	public boolean setAvailable(CommandSender sender) {
+		String canBeAvailableString = canBeAvailable();
+		if (canBeAvailableString != null) {
+			// message
+			sender.sendMessage(canBeAvailableString);
 			return false;
 		}
 		this.state = GameState.WAITING;
@@ -216,27 +221,27 @@ public class BaseArena extends Observable implements Arena {
 		reset();
 	}
 	
-	private boolean canBeAvailable() {
+	private String canBeAvailable() {
 		if (getPlayers() == null) {
-			return false;
+			return "Error! Players Set Is Null!";
 		}
 		if (this.spawnLocation == null || this.spawnLocation.isEmpty()) {
-			return false;
+			return "Error! Spawn Location Is Null Or Empty!";
 		}
 		if (this.waitingLocation == null) {
-			return false;
+			return "Error! Waiting Location Is Null!";
 		}
 		if (this.leaveLocation == null) {
-			return false;
+			return "Error! Leave Location Is Null!";
 		}
 		if (this.limits == null) {
-			return false;
+			return "Error! Arena's Region Is Null!";
 		}
 		if (this.minNumPlayers == -1 || this.maxNumPlayers == -1 || this.minNumPlayers > this.maxNumPlayers) {
-			return false;
+			return "Error! Arena's Min Or Max Num Of Players Or Both Aren't Valid!";
 		}
 		if (this.al == null) {
-			return false;
+			return "Error Arena Logic Is Null!";
 		}
 		return this.al.canBeAvailable(this);
 	}
@@ -324,7 +329,7 @@ public class BaseArena extends Observable implements Arena {
 			return false;
 		}
 		this.al = al;
-		addObserver(al);
+//		addObserver(al);
 		return true;
 		
 	}
@@ -376,7 +381,7 @@ public class BaseArena extends Observable implements Arena {
 	}
 
 	@Override
-	public ArenaLogic getAL() {
+	public ArenaLogic getArenaLogic() {
 		return this.al;
 	}
 
@@ -391,7 +396,7 @@ public class BaseArena extends Observable implements Arena {
 			return;
 		}
 		this.kits.add(kit);
-		resetGUIHolder();
+		this.guiHolder.addIcon(new KitIcon(kit));
 	}
 
 	@Override
@@ -400,14 +405,14 @@ public class BaseArena extends Observable implements Arena {
 			return false;
 		}
 		boolean returnValue = this.kits.remove(kit);
-		resetGUIHolder();
+		this.guiHolder.removeIcon(new KitIcon(kit));
 		return returnValue;
 	}
 
 	@Override
 	public void removeAllKits() {
 		this.kits.clear();
-		resetGUIHolder();
+		this.guiHolder.removeAllIcon();
 	}
 	
 	private String locationMapToString(Map<String, Location> locationsMap) {
@@ -542,8 +547,8 @@ public class BaseArena extends Observable implements Arena {
 			PlayerEvent playerEvent = (PlayerEvent)event;
 			removePlayer(playerEvent.getPlayer().getUniqueId());
 		}
-		setChanged();
-		notifyObservers(event);
+//		setChanged();
+//		notifyObservers(event);
 		return true;
 	}
 	
@@ -667,7 +672,9 @@ public class BaseArena extends Observable implements Arena {
 		arenaMap.put("maxNumOfPlayers", this.maxNumPlayers);
 		
 		try {
+			System.out.println("Before saving arena logic: " + this.al);
 			ArenasLogicsManager.saveArenaLogic(this.al, this.getID());
+			System.out.println("after saving arena logic: " + this.al);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -783,31 +790,31 @@ public class BaseArena extends Observable implements Arena {
 	}
 	
 	private void initializeGUIHolder() {
-		this.guiHolder = new SelectionGUIHolder(36, "kits");
-		int i = 0;
+		this.guiHolder = new ArraySelectionGUI(36, "kits");
 		for (Kit kit : this.kits) {
 			System.out.println("Adding Icon!");
 			this.guiHolder.addIcon(new KitIcon(kit));
 			System.out.println("Finished Adding Icon!");
-			i++;
 		}
 	}
 	
 	private void resetGUIHolder() {
-		this.guiHolder.reset();
-		int i = 0;
-		for (Kit kit : this.kits) {
-			this.guiHolder.addIcon(new KitIcon(kit));
-			i++;
-		}
+//		this.guiHolder.removeAllIcon();
+//		for (Kit kit : this.kits) {
+//			this.guiHolder.addIcon(new KitIcon(kit));
+//		}
+		this.guiHolder.clearSelections();
 	}
 	
 	private void givePlayerWaitingItems(Player player) {
-		ItemStack kitsItemStack = new CustomItemStack(new ItemStack(Material.COMPASS)).setType("Kits Menu").getItemStack();
-		ItemStack leaveItemStack = new CustomItemStack(new ItemStack(Material.BARRIER)).setType("Leave").getItemStack();
+//		ItemStack kitsItemStack = new CustomItemStack(new ItemStack(Material.COMPASS)).setType("Kits Menu").getItemStack();
+//		ItemStack leaveItemStack = new CustomItemStack(new ItemStack(Material.BARRIER)).setType("Leave").getItemStack();
 		player.getInventory().clear();
-		player.getInventory().setItem(0, kitsItemStack);
-		player.getInventory().setItem(8, leaveItemStack);
+//		player.getInventory().setItem(0, kitsItemStack);
+//		player.getInventory().setItem(8, leaveItemStack);
+		String pluginName = DRMinigames.getPlugin(DRMinigames.class).getName();
+		CustomItemStacksManager.getInstance().giveCustomItemStack(pluginName, "kits_menu", player, 0);
+		CustomItemStacksManager.getInstance().giveCustomItemStack(pluginName, "leave_game", player, 8);
 	}
 	
 	@Override
@@ -882,6 +889,14 @@ public class BaseArena extends Observable implements Arena {
 		
 		this.playersInventories.put(player.getUniqueId(), player.getInventory().getStorageContents().clone());
 		
+		for (ItemStack itemStack : this.playersInventories.get(player.getUniqueId())) {
+			if (itemStack != null) {
+				System.out.println("Material:" + itemStack.getType());
+			} else {
+				System.out.println("Material: null");
+			}
+		}
+		
 	}
 	
 	private void loadPlayerInventory(Player player) {
@@ -896,6 +911,12 @@ public class BaseArena extends Observable implements Arena {
 		
 		this.playersInventories.remove(player.getUniqueId());
 		
+	}
+	
+	@Override
+	public void onPlayerQuitEvent(PlayerQuitEvent event) {
+		super.onPlayerQuitEvent(event);
+		removePlayer(event.getPlayer().getUniqueId());
 	}
 	
 }

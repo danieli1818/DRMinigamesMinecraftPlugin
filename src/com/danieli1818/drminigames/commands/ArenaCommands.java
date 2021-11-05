@@ -343,7 +343,7 @@ public class ArenaCommands implements CommandExecutor {
 			return true;
 		}
 		
-		if (!arena.setAvailable()) {
+		if (!arena.setAvailable((CommandSender)p)) {
 			
 			p.sendMessage("Not Able To Set Available.");
 			

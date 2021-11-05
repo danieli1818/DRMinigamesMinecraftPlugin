@@ -3,22 +3,21 @@ package com.danieli1818.drminigames;
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractMap;
-import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.danieli1818.drminigames.arena.ArenasLogicsManager;
 import com.danieli1818.drminigames.commands.ArenaCommands;
+import com.danieli1818.drminigames.common.arenalogics.TeamsArenaLogic;
+import com.danieli1818.drminigames.items.CustomItemsCreator;
 import com.danieli1818.drminigames.listeners.MinigamesEventsListener;
 import com.danieli1818.drminigames.utils.ArenasManager;
 import com.danieli1818.drminigames.utils.SavingAndLoadingUtils;
-import com.danieli1818.drminigames.utils.guis.GUIListener;
-import com.danieli1818.drminigames.utils.items.ItemsListener;
-import com.danieli1818.drminigames.utils.items.enchantments.EnchantmentsManager;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public final class DRMinigames extends JavaPlugin {
@@ -31,6 +30,9 @@ public final class DRMinigames extends JavaPlugin {
 
 	private File kitsConfigFile;
 	private FileConfiguration kitsConfig;
+	
+	private final String arenasFileName = "arenas.yml";
+	private final String arenasLogicsFileName = "arenasLogics.yml";
 
 	@Override
 	public void onEnable() {
@@ -47,26 +49,29 @@ public final class DRMinigames extends JavaPlugin {
 		createArenasConfigs();
 
 		ArenasManager.getInstance().reloadArenas();
+		
+		createArenasLogicsFile();
+		
+		CustomItemsCreator.createCustomItems();
 
 		afterAllPluginsWereLoaded(() -> {
 			ArenasLogicsManager.getInstance().loadArenaLogicsFactoriesTypes();
 
 			ArenasLogicsManager.getInstance().registerArenaLogicsFactoriesTypes();
 
-			createArenasLogicsConfigs();
+			getServer().getScheduler().runTask(this, () -> {
+				createArenasLogicsConfigs();
+				
+				ArenasManager.getInstance().loadArenasLogics();
+			});
 
-			ArenasManager.getInstance().loadArenasLogics();
 		});
 
 		getCommand("drminigames").setExecutor(new ArenaCommands());
 
 		getServer().getPluginManager().registerEvents(new MinigamesEventsListener(), this);
 
-		getServer().getPluginManager().registerEvents(new GUIListener(), this);
-
-		getServer().getPluginManager().registerEvents(new ItemsListener(), this);
-
-		EnchantmentsManager.registerAllEnchantments();
+		ConfigurationSerialization.registerClass(TeamsArenaLogic.class);
 
 		System.out.println("plugin has successfully loaded!!!!");
 
@@ -95,7 +100,7 @@ public final class DRMinigames extends JavaPlugin {
 
 	private void createArenasConfigs() {
 
-		AbstractMap.Entry<File, FileConfiguration> arenasConfigs = createConfigurationFile("arenas.yml");
+		AbstractMap.Entry<File, FileConfiguration> arenasConfigs = createConfigurationFile(arenasFileName);
 		this.arenasConfigFile = arenasConfigs.getKey();
 		this.arenasConfig = arenasConfigs.getValue();
 
@@ -103,10 +108,14 @@ public final class DRMinigames extends JavaPlugin {
 
 	private void createArenasLogicsConfigs() {
 
-		AbstractMap.Entry<File, FileConfiguration> arenasLogicsConfigs = createConfigurationFile("arenasLogics.yml");
+		AbstractMap.Entry<File, FileConfiguration> arenasLogicsConfigs = createConfigurationFile(arenasLogicsFileName);
 		this.arenasLogicsConfigFile = arenasLogicsConfigs.getKey();
 		this.arenasLogicsConfig = arenasLogicsConfigs.getValue();
 
+	}
+	
+	private void createArenasLogicsFile() {
+		this.arenasLogicsConfigFile = new File(getDataFolder(), arenasLogicsFileName);
 	}
 
 	private void createKitsConfigs() {

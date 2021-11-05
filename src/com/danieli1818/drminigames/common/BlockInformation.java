@@ -1,8 +1,6 @@
 package com.danieli1818.drminigames.common;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -12,7 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.material.MaterialData;
-import org.bukkit.metadata.MetadataValue;
 
 public class BlockInformation implements ConfigurationSerializable {
 
